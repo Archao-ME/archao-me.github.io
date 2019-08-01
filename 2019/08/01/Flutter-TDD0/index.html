@@ -11,20 +11,20 @@
     
     
     
-    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Archao","sameAs":["https://github.com/Archao-ME","archao-dev@gmail.com"],"image":"https://avatars2.githubusercontent.com/u/7686334?s=460&v=4"},"articleBody":"\nTest-driven development (TDD) is a way of managing fear during programming — Kent Beck\n\n\n\n想写出健壮的代码？\n想减少调试时间？\n想让代码写得好看？\n想试试很酷的编程方法？\n想获得更多编程的快乐？\n\n也许TDD能帮你做到。是不是像广告词。\n知道TDD这个词很多年了，但只停留在尝试的程度。而没有实践就没有发言权，其中的酸甜苦辣也得尝试才能体会。\n所以最近我也开始实践TDD，用于我的Flutter学习实践中，并记录实践过程。\n这篇将介绍下TDD，以及我的一些理解。\n什么是TDDTest-driven development (TDD) 即测试驱动开发，顾名思义：开发人员先写测试，让测试用例帮助开发人员进行开发。\n这是敏捷开发中的一种实践方法。\n在一些敏捷开发实践中，TDD是必须的，比如极限编程（XP）\n甚至有人言敏捷开发做不好，归结到底就是没有TDD\n\n\nRED → GREEN →Refactor 即 小步快走的 写测试→通过测试→重构\n\nTDD帮助我们什么？再来说说我对TDD的理解：先写测试，由测试帮助开发人员开发代码。\n注意帮助两个字，测试能帮助我们什么呢？\n\n帮助任务拆解\n帮助我们明确逻辑\n帮助我们验收代码\n帮助我们重构时不必担心改坏\n\n我们可以看看这些TDD提供的帮助，我们是不是需要的，如果不需要，那可以ctrl+w关掉这个页面啦。\n如果需要，那么可以继续聊聊TDD。\nTDD难在哪看起来TDD很牛，那为什么业界少有实践呢？\n主要还是难。\n不愿尝试听过单元测试，但是没做过的人，都会说一句：哪有时间写测试啊。\n但是，实际耗费多少时间，没实践过的人怎么会知道呢。\n使用TDD觉得爽的人，说再多好处，其实不愿意尝试的人依旧不愿意尝试。\n迈开第一步，才是最重要的。\n面向效果编程也许有同学想尝试单元测试了，于是翻出自己的代码，想对这份代码写测试，结果发现这代码根本测不了，想测试，就必须重构。卒。\n当我们完成一份需求后，会发现我们写出的许多代码，都是不可测试的，这是为什么呢。\n现在大多数前端开发的开发流程就是：需求→写代码→看效果→修改→看效果。\n（对后端来说，可能就是看控制台，看日志）\n可以看到我们是以页面呈现效果来做编程目标的，我称之为面向效果编程。\n在面向效果编程中，我们写一个方法、一段逻辑，目的是为了实现效果，结果就是我们用了一串面条代码的函数完成了效果。\n在这种编程模式下，我们不会去尝试任何自动化测试，因为我们靠手工测试，这才是尝试单元测试时碰到的最大问题。\nGUI、Web开发天然难以单测因为现在的Web开发，强依赖框架，在没有测试覆盖的历史代码中，想要做单元测试，是要经历很多磨难的。在写测试时，需要耗费很多时间来进行各种mock，解决各种依赖问题。这确实是很难解决的的问题。\n因此Web开发并没有像后端一样要求很高的测试覆盖率，所以测试需要覆盖的是基础组件、核心代码、担心出错的代码。\n怎么TDD测试驱动开发在TDD中，我们会快速且多次的重复‘红（测试不通过） → 绿（测试通过） → 重构‘的过程 ：\n\n写一个测试用例，运行测试，此时结果不通过\n写代码用于通过测试用例，运行测试，此时测试结果为通过\n重构刚刚写的代码（测试和业务代码），优化你的代码设计\n\n如此一个TDD流程下来，我们得到一个通过测试并优化过的可执行代码。\n流程相当的简单。\n两顶帽子开发者在开发过程中也需要些仪式感，比如小黄鸭调试法中放一只小黄鸭\n在TDD中，也有关于仪式感的东西，那就是两顶帽子：\n\n在添加新功能时，戴上写新功能的帽子，直到测试结果为绿色；\n在重构时，戴上重构的帽子，在测试用例的保护下重构，保持测试结果为绿色。\n\n两顶帽子有效的避免在重构时添加没有测试的新功能和代码和添加新代码时手贱的重构（当然，在脑子里戴就好了。。）。\n重构驱动设计在设计先行的情况下，我们可能会过度设计，在用上各种设计模式后，发现我们要实现的功能其实是杀鸡用上宰牛刀，所以TDD的思想是重构驱动设计。\n在每个TDD周期后，我们的代码会变得复杂，但每次周期都会重构，所以看起来还可以。这时再对复杂代码在有测试保护下进行代码设计和重构。\n当然，这个驱动有不同的做法：\n\n重构驱动实现设计\n重构驱动设计并实现\n\n区别在于，前者已经构思过设计过但开发新功能时不在代码中表现，后者是不提前构思设计。\n这两种方法都是可行的。\n最后软件开发中没有银弹，TDD也不是。\n我们可以思考后决定用UTDD、ATDD、BDD甚至什么都不用，但是这不妨碍我们去学习、实践和总结，这也是开发人员需要有的一种开放和持续学习的心态。\n之后我会实践TDD在Flutter开发中的实践，进行一些总结，后续更新。\n","dateCreated":"2019-08-01T16:21:31+08:00","dateModified":"2019-08-01T17:28:50+08:00","datePublished":"2019-08-01T16:21:31+08:00","description":"","headline":"Flutter & TDD 实践（零）：TDD简述","image":[],"mainEntityOfPage":{"@type":"WebPage","@id":"http://yoursite.com/2019/08/01/Flutter-TDD0/"},"publisher":{"@type":"Organization","name":"Archao","sameAs":["https://github.com/Archao-ME","archao-dev@gmail.com"],"image":"https://avatars2.githubusercontent.com/u/7686334?s=460&v=4","logo":{"@type":"ImageObject","url":"https://avatars2.githubusercontent.com/u/7686334?s=460&v=4"}},"url":"http://yoursite.com/2019/08/01/Flutter-TDD0/","keywords":"TDD, Flutter"}</script>
-    <meta name="description" content="Test-driven development (TDD) is a way of managing fear during programming — Kent Beck    想写出健壮的代码？ 想减少调试时间？ 想让代码写得好看？ 想试试很酷的编程方法？ 想获得更多编程的快乐？  也许TDD能帮你做到。是不是像广告词。 知道TDD这个词很多年了，但只停留在尝试的程度。而没有实践就没有发言权">
+    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Archao","sameAs":["https://github.com/Archao-ME","archao-dev@gmail.com"],"image":"https://avatars2.githubusercontent.com/u/7686334?s=460&v=4"},"articleBody":"Flutter &amp; TDD 实践（零）：TDD简述\nTest-driven development (TDD) is a way of managing fear during programming — Kent Beck\n\n\n\n想写出健壮的代码？\n想减少调试时间？\n想让代码写得好看？\n想试试很酷的编程方法？\n想获得更多编程的快乐？\n\n也许TDD能帮你做到。\n是不是像广告词。\n知道TDD这个词很多年了，但只停留在尝试的程度。而没有实践就没有发言权，其中的酸甜苦辣也得尝试才能体会。\n所以最近我也开始实践TDD，用于我的Flutter学习实践中，并记录实践过程。\n这篇将介绍下TDD，以及我的一些理解。\n什么是TDDTest-driven development (TDD) 即测试驱动开发，顾名思义：开发人员先写测试，让测试用例帮助开发人员进行开发。\n这是敏捷开发中的一种实践方法。\n在一些敏捷开发实践中，TDD是必须的，比如极限编程（XP）\n甚至有人言敏捷开发做不好，归结到底就是没有TDD\n\n\nRED → GREEN →Refactor 即 小步快走的 写测试→通过测试→重构\n\nTDD帮助我们什么？\n先写测试，由测试用例帮助开发人员开发代码。\n\n注意帮助两个字，测试能帮助我们什么呢？\n\n帮助任务拆解\n帮助我们明确逻辑\n帮助我们验收代码\n帮助我们重构时不必担心改坏\n\n我们可以看看这些TDD提供的帮助，我们是不是需要的，如果不需要，那可以ctrl+w关掉这个页面啦。\n如果需要，那么可以继续聊聊TDD。\nTDD难在哪看起来TDD很牛，那为什么业界少有实践呢？\n不愿尝试听过单元测试，但是没做过的人，都会说一句：哪有时间写测试啊。\n但是吧，实际耗费多少时间，没实践过的人怎么会知道呢。\n使用TDD觉得爽的人，说再多好处，其实不愿意尝试的人依旧不愿意尝试。\n面向效果编程也许有同学想尝试单元测试了，于是翻出自己的代码，想对这份代码写测试，结果发现这代码根本测不了，想测试，就必须重构。卒。\n当我们完成一份需求后，会发现我们写出的许多代码，都是不可测试的，这是为什么呢。\n现在大多数前端开发的开发流程就是：需求→写代码→看效果→修改→看效果。\n（对后端来说，可能就是看控制台，看日志）\n可以看到我们是以页面呈现效果来做编程目标的，我称之为面向效果编程。\n在面向效果编程中，我们写一个方法、一段逻辑，目的是为了实现效果，结果就是我们用了一串面条代码的函数完成了效果。\n在这种编程模式下，我们不会去尝试任何自动化测试，因为我们靠手工测试，这才是尝试单元测试时碰到的最大问题。\nGUI、Web开发天然难以单测因为现在的Web开发，强依赖框架，在没有测试覆盖的历史代码中，想要做单元测试，是要经历很多磨难的。\n而且在写测试时，需要耗费很多时间来进行各种mock，解决各种依赖问题。这确实是很难解决的的问题。\n因此Web开发并没有像后端一样要求很高的测试覆盖率，测试需要覆盖的是基础组件、核心代码、担心出错的代码，不需要花大量实践去测试太多依赖的高级组件。\n更高层面的测试，我们交给E2E测试去做。\n怎么TDD测试驱动开发在TDD中，我们会快速且多次的重复‘红（测试不通过） → 绿（测试通过） → 重构‘的过程 ：\n\n写一个测试用例，运行测试，此时结果不通过\n写代码用于通过测试用例，运行测试，此时测试结果为通过\n重构刚刚写的代码（测试和业务代码），优化你的代码设计\n\n如此一个TDD流程下来，我们得到一个通过测试并优化过的可执行代码。\n流程相当的简单。\n两顶帽子开发者在开发过程中也需要些仪式感，比如小黄鸭调试法中放一只小黄鸭\n在TDD中，也有关于仪式感的东西，那就是两顶帽子：\n\n在添加新功能时，戴上写新功能的帽子，直到测试结果为绿色；\n在重构时，戴上重构的帽子，在测试用例的保护下重构，保持测试结果为绿色。\n\n两顶帽子是为了专注当下（添加功能或者重构）\n一个阶段只做一件事情可以避免：\n\n重构时添加没有测试覆盖的新功能\n在添加新功能时手贱的重构\n\n当然，戴帽子这件事情在脑子里戴就好了，不用把绿帽子戴头上。\n重构驱动设计在设计先行的情况下，我们可能会过度设计，在用上各种设计模式后，发现我们要实现的功能其实是杀鸡用上宰牛刀，所以TDD的思想是重构驱动设计。\n在多个TDD周期后，我们的代码会变得复杂。\n在Code review后，如果觉得必要进行代码设计以便接下来的编程，那么我们就应该开始引入必要的设计模式进行重构。\n重构也是需要先写测试：重构测试用例 → 重构代码通过测试用例\n当然，这个驱动有不同的做法：\n\n重构驱动实现设计\n重构驱动设计并实现\n\n区别在于，前者已经构思过设计过但开发新功能时不在代码中表现，后者是不提前构思设计。\n这两种方法都是可行的。\n最后软件开发中没有银弹，TDD也不是。\n我们可以思考后决定用UTDD、ATDD、BDD甚至什么都不用，但是这不妨碍我们去学习、实践和总结，这也是开发人员需要有的一种开放和持续学习的心态。\n之后我会Flutter开发中实践TDD，进行一些总结，后续更新。\n","dateCreated":"2019-08-01T16:21:31+08:00","dateModified":"2019-08-01T19:00:16+08:00","datePublished":"2019-08-01T16:21:31+08:00","description":"","headline":"Flutter & TDD 实践（零）：TDD简述","image":[],"mainEntityOfPage":{"@type":"WebPage","@id":"http://yoursite.com/2019/08/01/Flutter-TDD0/"},"publisher":{"@type":"Organization","name":"Archao","sameAs":["https://github.com/Archao-ME","archao-dev@gmail.com"],"image":"https://avatars2.githubusercontent.com/u/7686334?s=460&v=4","logo":{"@type":"ImageObject","url":"https://avatars2.githubusercontent.com/u/7686334?s=460&v=4"}},"url":"http://yoursite.com/2019/08/01/Flutter-TDD0/","keywords":"TDD, Flutter"}</script>
+    <meta name="description" content="Flutter &amp;amp; TDD 实践（零）：TDD简述 Test-driven development (TDD) is a way of managing fear during programming — Kent Beck    想写出健壮的代码？ 想减少调试时间？ 想让代码写得好看？ 想试试很酷的编程方法？ 想获得更多编程的快乐？  也许TDD能帮你做到。 是不是像广告词。 知道TDD">
 <meta name="keywords" content="TDD,Flutter">
 <meta property="og:type" content="blog">
 <meta property="og:title" content="Flutter &amp; TDD 实践（零）：TDD简述">
 <meta property="og:url" content="http://yoursite.com/2019/08/01/Flutter-TDD0/index.html">
 <meta property="og:site_name" content="Archao的博客">
-<meta property="og:description" content="Test-driven development (TDD) is a way of managing fear during programming — Kent Beck    想写出健壮的代码？ 想减少调试时间？ 想让代码写得好看？ 想试试很酷的编程方法？ 想获得更多编程的快乐？  也许TDD能帮你做到。是不是像广告词。 知道TDD这个词很多年了，但只停留在尝试的程度。而没有实践就没有发言权">
+<meta property="og:description" content="Flutter &amp;amp; TDD 实践（零）：TDD简述 Test-driven development (TDD) is a way of managing fear during programming — Kent Beck    想写出健壮的代码？ 想减少调试时间？ 想让代码写得好看？ 想试试很酷的编程方法？ 想获得更多编程的快乐？  也许TDD能帮你做到。 是不是像广告词。 知道TDD">
 <meta property="og:locale" content="zh-cn">
 <meta property="og:image" content="http://yoursite.com/2019/08/01/Flutter-TDD0/Untitled-db464249-9c22-4d2a-875f-1569dfb9b2ac.png">
-<meta property="og:updated_time" content="2019-08-01T09:28:50.039Z">
+<meta property="og:updated_time" content="2019-08-01T11:00:16.598Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Flutter &amp; TDD 实践（零）：TDD简述">
-<meta name="twitter:description" content="Test-driven development (TDD) is a way of managing fear during programming — Kent Beck    想写出健壮的代码？ 想减少调试时间？ 想让代码写得好看？ 想试试很酷的编程方法？ 想获得更多编程的快乐？  也许TDD能帮你做到。是不是像广告词。 知道TDD这个词很多年了，但只停留在尝试的程度。而没有实践就没有发言权">
+<meta name="twitter:description" content="Flutter &amp;amp; TDD 实践（零）：TDD简述 Test-driven development (TDD) is a way of managing fear during programming — Kent Beck    想写出健壮的代码？ 想减少调试时间？ 想让代码写得好看？ 想试试很酷的编程方法？ 想获得更多编程的快乐？  也许TDD能帮你做到。 是不是像广告词。 知道TDD">
 <meta name="twitter:image" content="http://yoursite.com/2019/08/01/Flutter-TDD0/Untitled-db464249-9c22-4d2a-875f-1569dfb9b2ac.png">
     
     
@@ -270,7 +270,7 @@
     
     <div class="post-content markdown">
         <div class="main-content-wrap">
-            <blockquote>
+            <h1 id="Flutter-amp-TDD-实践（零）：TDD简述"><a href="#Flutter-amp-TDD-实践（零）：TDD简述" class="headerlink" title="Flutter &amp; TDD 实践（零）：TDD简述"></a>Flutter &amp; TDD 实践（零）：TDD简述</h1><blockquote>
 <p>Test-driven development (TDD) is a way of managing fear during programming — Kent Beck</p>
 </blockquote>
 <hr>
@@ -281,7 +281,8 @@
 <li>想试试很酷的编程方法？</li>
 <li>想获得更多编程的快乐？</li>
 </ul>
-<p>也许TDD能帮你做到。是不是像广告词。</p>
+<p>也许TDD能帮你做到。</p>
+<p>是不是像广告词。</p>
 <p>知道<strong>TDD</strong>这个词很多年了，但只停留在尝试的程度。而没有实践就没有发言权，其中的酸甜苦辣也得尝试才能体会。</p>
 <p>所以最近我也开始实践TDD，用于我的Flutter学习实践中，并记录实践过程。</p>
 <p>这篇将介绍下TDD，以及我的一些理解。</p>
@@ -293,7 +294,9 @@
 <blockquote>
 <p>RED → GREEN →Refactor 即 小步快走的 写测试→通过测试→重构</p>
 </blockquote>
-<h1 id="TDD帮助我们什么？"><a href="#TDD帮助我们什么？" class="headerlink" title="TDD帮助我们什么？"></a>TDD帮助我们什么？</h1><p>再来说说我对TDD的理解：先写测试，由测试帮助开发人员开发代码。</p>
+<h1 id="TDD帮助我们什么？"><a href="#TDD帮助我们什么？" class="headerlink" title="TDD帮助我们什么？"></a>TDD帮助我们什么？</h1><blockquote>
+<p>先写测试，由测试用例帮助开发人员开发代码。</p>
+</blockquote>
 <p>注意帮助两个字，测试能帮助我们什么呢？</p>
 <ul>
 <li>帮助任务拆解</li>
@@ -304,11 +307,9 @@
 <p>我们可以看看这些TDD提供的帮助，我们是不是需要的，如果不需要，那可以ctrl+w关掉这个页面啦。</p>
 <p>如果需要，那么可以继续聊聊TDD。</p>
 <h1 id="TDD难在哪"><a href="#TDD难在哪" class="headerlink" title="TDD难在哪"></a>TDD难在哪</h1><p>看起来TDD很牛，那为什么业界少有实践呢？</p>
-<p>主要还是难。</p>
 <h2 id="不愿尝试"><a href="#不愿尝试" class="headerlink" title="不愿尝试"></a>不愿尝试</h2><p>听过单元测试，但是没做过的人，都会说一句：哪有时间写测试啊。</p>
-<p>但是，实际耗费多少时间，没实践过的人怎么会知道呢。</p>
+<p>但是吧，实际耗费多少时间，没实践过的人怎么会知道呢。</p>
 <p>使用TDD觉得爽的人，说再多好处，其实不愿意尝试的人依旧不愿意尝试。</p>
-<p>迈开第一步，才是最重要的。</p>
 <h2 id="面向效果编程"><a href="#面向效果编程" class="headerlink" title="面向效果编程"></a>面向效果编程</h2><p>也许有同学想尝试单元测试了，于是翻出自己的代码，想对这份代码写测试，结果发现这代码根本测不了，想测试，就必须重构。卒。</p>
 <p>当我们完成一份需求后，会发现我们写出的许多代码，都是不可测试的，这是为什么呢。</p>
 <p>现在大多数前端开发的开发流程就是：需求→写代码→看效果→修改→看效果。</p>
@@ -316,8 +317,10 @@
 <p>可以看到我们是以页面呈现效果来做编程目标的，我称之为面向效果编程。</p>
 <p>在面向效果编程中，我们写一个方法、一段逻辑，目的是为了实现效果，结果就是我们用了一串面条代码的函数完成了效果。</p>
 <p>在这种编程模式下，我们不会去尝试任何自动化测试，因为我们靠手工测试，这才是尝试单元测试时碰到的最大问题。</p>
-<h2 id="GUI、Web开发天然难以单测"><a href="#GUI、Web开发天然难以单测" class="headerlink" title="GUI、Web开发天然难以单测"></a>GUI、Web开发天然难以单测</h2><p>因为现在的Web开发，强依赖框架，在没有测试覆盖的历史代码中，想要做单元测试，是要经历很多磨难的。在写测试时，需要耗费很多时间来进行各种mock，解决各种依赖问题。这确实是很难解决的的问题。</p>
-<p>因此Web开发并没有像后端一样要求很高的测试覆盖率，所以测试需要覆盖的是基础组件、核心代码、担心出错的代码。</p>
+<h2 id="GUI、Web开发天然难以单测"><a href="#GUI、Web开发天然难以单测" class="headerlink" title="GUI、Web开发天然难以单测"></a>GUI、Web开发天然难以单测</h2><p>因为现在的Web开发，强依赖框架，在没有测试覆盖的历史代码中，想要做单元测试，是要经历很多磨难的。</p>
+<p>而且在写测试时，需要耗费很多时间来进行各种mock，解决各种依赖问题。这确实是很难解决的的问题。</p>
+<p>因此Web开发并没有像后端一样要求很高的测试覆盖率，测试需要覆盖的是基础组件、核心代码、担心出错的代码，不需要花大量实践去测试太多依赖的高级组件。</p>
+<p>更高层面的测试，我们交给E2E测试去做。</p>
 <h1 id="怎么TDD"><a href="#怎么TDD" class="headerlink" title="怎么TDD"></a>怎么TDD</h1><h2 id="测试驱动开发"><a href="#测试驱动开发" class="headerlink" title="测试驱动开发"></a>测试驱动开发</h2><p>在TDD中，我们会快速且多次的重复‘红（测试不通过） → 绿（测试通过） → 重构‘的过程 ：</p>
 <ol>
 <li>写一个测试用例，运行测试，此时结果不通过</li>
@@ -332,9 +335,17 @@
 <li>在添加新功能时，戴上写新功能的帽子，直到测试结果为绿色；</li>
 <li>在重构时，戴上重构的帽子，在测试用例的保护下重构，保持测试结果为绿色。</li>
 </ul>
-<p>两顶帽子有效的避免在重构时添加没有测试的新功能和代码和添加新代码时手贱的重构（当然，在脑子里戴就好了。。）。</p>
+<p>两顶帽子是为了专注当下（添加功能或者重构）</p>
+<p>一个阶段只做一件事情可以避免：</p>
+<ul>
+<li>重构时添加没有测试覆盖的新功能</li>
+<li>在添加新功能时手贱的重构</li>
+</ul>
+<p>当然，戴帽子这件事情在脑子里戴就好了，不用把绿帽子戴头上。</p>
 <h2 id="重构驱动设计"><a href="#重构驱动设计" class="headerlink" title="重构驱动设计"></a>重构驱动设计</h2><p>在设计先行的情况下，我们可能会过度设计，在用上各种设计模式后，发现我们要实现的功能其实是杀鸡用上宰牛刀，所以TDD的思想是重构驱动设计。</p>
-<p>在每个TDD周期后，我们的代码会变得复杂，但每次周期都会重构，所以看起来还可以。这时再对复杂代码在有测试保护下进行代码设计和重构。</p>
+<p>在多个TDD周期后，我们的代码会变得复杂。</p>
+<p>在Code review后，如果觉得必要进行代码设计以便接下来的编程，那么我们就应该开始引入必要的设计模式进行重构。</p>
+<p>重构也是需要先写测试：重构测试用例 → 重构代码通过测试用例</p>
 <p>当然，这个驱动有不同的做法：</p>
 <ul>
 <li>重构驱动实现设计</li>
@@ -344,7 +355,7 @@
 <p>这两种方法都是可行的。</p>
 <h1 id="最后"><a href="#最后" class="headerlink" title="最后"></a>最后</h1><p>软件开发中没有银弹，TDD也不是。</p>
 <p>我们可以思考后决定用UTDD、ATDD、BDD甚至什么都不用，但是这不妨碍我们去学习、实践和总结，这也是开发人员需要有的一种开放和持续学习的心态。</p>
-<p>之后我会实践TDD在Flutter开发中的实践，进行一些总结，后续更新。</p>
+<p>之后我会Flutter开发中实践TDD，进行一些总结，后续更新。</p>
 
             
 
