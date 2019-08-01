@@ -45,6 +45,8 @@
 
     
         
+            <link rel="stylesheet" href="/assets/css/gitment.css">
+        
     
 </head>
 
@@ -437,6 +439,16 @@
         
         
             
+                <li class="post-action">
+                    <a
+                        class="post-action-btn btn btn--default"
+                        href="#gitment"
+                        aria-label="Kommentieren"
+                    >
+                        <i class="fa fa-comment"></i>
+                    </a>
+                </li>
+            
         
         <li class="post-action">
             
@@ -451,6 +463,8 @@
 
         
         
+            
+                <div id="gitment"></div>
             
         
     </div>
@@ -545,6 +559,16 @@
             </li>
         
         
+            
+                <li class="post-action">
+                    <a
+                        class="post-action-btn btn btn--default"
+                        href="#gitment"
+                        aria-label="Kommentieren"
+                    >
+                        <i class="fa fa-comment"></i>
+                    </a>
+                </li>
             
         
         <li class="post-action">
@@ -655,6 +679,21 @@
 <!--SCRIPTS END-->
 
 
+    
+        <script src="/assets/js/gitment.js"></script>
+        <script type="text/javascript">
+          (function() {
+            new Gitment({
+              id: 'http://yoursite.com/2019/08/01/Flutter-TDD0/',
+              owner: 'Archao-ME',
+              repo: 'https://github.com/Archao-ME/archao-me.github.io',
+              oauth: {
+                client_id: '3d80ba116053dac3bbd5',
+                client_secret: '04595b0343dd9c237f729544482b32d92f8fefc7'
+              }
+            }).render('gitment')
+          })()
+        </script>
     
 
 
