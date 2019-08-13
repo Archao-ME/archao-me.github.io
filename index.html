@@ -247,6 +247,310 @@
                     
                         <a
                             class="link-unstyled"
+                            href="/2019/08/13/Flutter-TDD-1/"
+                            aria-label=": Flutter &amp; TDD 实践（一）：组件和列表"
+                        >
+                            Flutter &amp; TDD 实践（一）：组件和列表
+                        </a>
+                    
+                </h1>
+                <div class="postShorten-meta">
+    <time datetime="2019-08-13T16:09:44+08:00">
+	
+		    8月 13, 2019
+    	
+    </time>
+    
+</div>
+
+            </div>
+            
+                <div class="postShorten-content">
+                    <h1 id="Flutter-amp-TDD-实践（一）：组件和列表"><a href="#Flutter-amp-TDD-实践（一）：组件和列表" class="headerlink" title="Flutter &amp; TDD 实践（一）：组件和列表"></a>Flutter &amp; TDD 实践（一）：组件和列表</h1><p>我们要实现的东西整体效果草图：</p>
+<p><img src="Untitled-49ed6c0e-770d-494e-9956-82453b308ede.png" alt></p>
+<p>在第一部分的实践中，我们会用4个TDD周期实现两个组件（IssueCard和IssueCardList）和一个Model。</p>
+<p>总共有有四个TDD周期：</p>
+<ol>
+<li>IssueCard部分</li>
+<li>IssueModel数据模型部分</li>
+<li>重构IssueCard部分</li>
+<li>IssueCardList列表部分</li>
+</ol>
+<p>步骤如下：</p>
+<p><img src="Untitled-eef214de-83be-442a-9aa8-632cd4be0ffc.png" alt></p>
+<p>可以看到，除了在最后，我们都没有跑过一次项目构建，也没有通过看最终效果来验证我们的代码有没有问题就把逻辑写完了。</p>
+<p>这和以前的开发思维有很大的不同。<br>传统开发可能写一行代码但是害怕代码有问题，于是我们会run一次看看最终效果。这一步骤被我们用测试代替了，把我们害怕的内容前置到测试阶段，之后就心无旁骛的写我们的实现了，不会再害怕代码出错，任何修改都有测试代码保驾护航。</p>
+<h1 id="第一个TDD周期：IssueCard组件"><a href="#第一个TDD周期：IssueCard组件" class="headerlink" title="第一个TDD周期：IssueCard组件"></a>第一个TDD周期：IssueCard组件</h1><h2 id="测试代码"><a href="#测试代码" class="headerlink" title="测试代码"></a>测试代码</h2><p>先快速写一个测试，我们要一个IssueCard组件，这个组件有一个<code>test title</code>的文本。</p>
+<pre><code>import &apos;package:flutter/material.dart&apos;;
+import &apos;package:flutter_test/flutter_test.dart&apos;;
+import &apos;package:zenhub_app_tdd/component/issue_card.dart&apos;;
+
+void main() {
+  testWidgets(&apos;Issue card component&apos;, (WidgetTester tester) async {
+
+    await tester.pumpWidget(new MaterialApp(
+      home: IssueCard()
+    ));
+
+    expect(find.text(&apos;test title&apos;), findsOneWidget);
+  });
+}</code></pre><p>写完跑一次测试，确保这个测试已运行且不通过。</p>
+<h3 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h3><p>在实现逻辑使测试通过之前，我们先搞清楚测试用例的代码，有如下方法和实例：</p>
+<ul>
+<li>测试相关：<code>testWidget</code>、<code>WidgetTester</code>、<code>pumpWidget</code>、<code>expect</code></li>
+<li>业务相关：<code>MeterialApp</code>、<code>IssueCard</code></li>
+</ul>
+<h3 id="组件测试代码模板"><a href="#组件测试代码模板" class="headerlink" title="组件测试代码模板"></a>组件测试代码模板</h3><p><code>testWidgets</code>是 <code>test</code> 方法的升级版，其提供 <code>WidgetTester</code> 实例，<code>WidgetTester</code>主要有三部分功能：</p>
+<ul>
+<li>提供 <code>pumpWidget</code> 方法，用于在测试环境中挂载和渲染组件</li>
+<li>提供 <code>pump</code> 和 <code>pumpAndSettle</code> 用于重新渲染组件</li>
+<li>提供模拟用户行为的功能，如点击、滚动、查询组件等。</li>
+</ul>
+<p>因此在一个组件的测试代码模板是这样的：</p>
+<pre><code>void main() {
+  testWidgets(&apos;Description&apos;, (WidgetTester tester) async {
+
+    await tester.pumpWidget(YourComponent);
+
+    expect(A), B);
+  });
+}</code></pre><p>之后在 <code>tester.pumpWidget</code>中挂载我们要测试的组件即可。</p>
+<p>我们可以将这一套代码加入编辑器的模板代码库中，提高编写新建用例时的速度。</p>
+<h3 id="MaterialApp-CupertinoApp"><a href="#MaterialApp-CupertinoApp" class="headerlink" title="MaterialApp/CupertinoApp"></a>MaterialApp/CupertinoApp</h3><p>在第一个测试的代码中，我们看到<code>IssueCard</code>组件被<code>MaterialApp</code>包装起来了:</p>
+<pre><code>await tester.pumpWidget(new MaterialApp(
+    home: IssueCard()
+));</code></pre><p>那么 <code>MaterialApp</code>是什么呢?</p>
+<p><code>MaterialApp</code> 是官方提供的<a href="https://material.io/" target="_blank" rel="noopener">Material</a>设计风格的组件库，用于统一设计风格、快速开发。其提供了大量的组件，包括了App结构、导航以及各种常用控件，具体可查阅官方文档。</p>
+<p>如果在组件用使用了 <code>MaterialApp</code> 提供的组件，那么需要用 <code>MaterialApp</code> 来作为父节点提供运行环境。</p>
+<p>同理， <code>CupertinoApp</code> 是IOS风格的组件库，使用方法和 <code>MaterialApp</code> 一致。</p>
+<p><img src="Untitled-bb82646d-8052-4d07-9bf2-855098dd5198.png" alt></p>
+<h3 id="断言"><a href="#断言" class="headerlink" title="断言"></a>断言</h3><pre><code>expect(find.text(&apos;test title&apos;), findsOneWidget);</code></pre><p>断言语句很简单，<code>expect</code>的入参有两个：目标和结果。</p>
+<p>当目标符合结果时，通过测试，反之不通过。</p>
+<p>显然上面代码意思是：在挂载的组件中找 <code>test title</code> 关键字， 若找到且只有一个组件则通过测试。</p>
+<p>除了 <code>findsOneWidget</code> 之外还有 <code>findsNothing</code>、 <code>findsWidgets</code>、 <code>findsNWidgets</code></p>
+<p>分别是：</p>
+<ul>
+<li><code>findsNothing</code> ：没有该组件</li>
+<li><code>findsWidgets</code> ：找到有多个组件</li>
+<li><code>findsNWidgets</code> ：找到特定数量的组件，如 <code>findsNWidgets(2)</code></li>
+</ul>
+<h1 id="第一个TDD周期：实现代码"><a href="#第一个TDD周期：实现代码" class="headerlink" title="第一个TDD周期：实现代码"></a>第一个TDD周期：实现代码</h1><p>接下来我们将实现代码，让测试通过。</p>
+<pre><code>import &apos;package:flutter/material.dart&apos;;
+import &apos;package:zenhub_app_tdd/model/issue.dart&apos;;
+
+class IssueCard extends StatelessWidget {
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: Text(&apos;test title&apos;),
+    );
+  }
+}</code></pre><p>几行代码使测试通过，用一个 <code>Container</code> 组件包含一个显示 <code>test title</code> 的 <code>Text</code> 组件。</p>
+<p>代码足够简单也无需重构，所以我们快速的完成第一个TDD周期。</p>
+<p>第一个TDD周期所做的事情非常简单，也需要非常简单。</p>
+<p>以后的每一个TDD周期也是如此简单（代码量少和颗粒度小）。</p>
+<h1 id="第二个周期：Issue-Model"><a href="#第二个周期：Issue-Model" class="headerlink" title="第二个周期：Issue Model"></a>第二个周期：Issue Model</h1><p>这时我们还不能传入自定义参数给组件展示，于是我们开始第二个TDD周期</p>
+<p>在Dart中，我们不能像JS一样直接接收JSON并直接使用。</p>
+<p>为此我们需要一个类，JSON作为构造函数的入参。</p>
+<p>实例化后的对象拥有JSON一样的属性和值</p>
+<p><img src="Untitled-d9ace57a-8434-46f0-9dd5-b5c577ddbdbb.png" alt></p>
+<p>具体用法可以看下面的测试代码（可见测试代码也是可以当文档用的）</p>
+<h2 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h2><p>有了想法后开始写测试：</p>
+<pre><code>void main() {
+  test(&apos;should Issue model from json&apos;, () {
+    Issue issue = Issue.fromJson({
+      &apos;title&apos;: &apos;test title&apos;
+    });
+    expect(issue.title, equals(&apos;test title&apos;));
+  });
+}</code></pre><h2 id="分析-1"><a href="#分析-1" class="headerlink" title="分析"></a>分析</h2><h3 id="Dart的构造函数"><a href="#Dart的构造函数" class="headerlink" title="Dart的构造函数"></a>Dart的构造函数</h3><p>在Dart中，实例化一个类时 <code>new</code> 关键字是可以省略的，所以 <code>new A()</code> 也等于 <code>A()</code> </p>
+<p>另外Dart是可以拥有具名构造函数的，所以构造函数名字可以为 <code>ClassName</code> 或者 <code>ClassName.identifier</code>  </p>
+<p>我们通过 <code>Issue.fromJson</code> 具名构造函数来实例化 <code>Issue</code>。</p>
+<p>那么可以用这个特性来实现通过JSON实例化Issue了：</p>
+<h2 id="实现代码"><a href="#实现代码" class="headerlink" title="实现代码"></a>实现代码</h2><pre><code>class Issue {
+  String title;
+  Issue.fromJson(Map&lt;String, dynamic&gt; json) :
+      title = json[&apos;title&apos;];
+}</code></pre><p>当有一天 <code>Issue</code> 需要接收 <code>XML</code> 的数据时，我们只需要加 <code>Issue.fromXML</code> 构造函数即可。</p>
+<blockquote>
+<p>在Flutter中，在处理JSON数据时我们需要自己进行转换或者使用第三方库，可见<a href="https://flutterchina.club/json/" target="_blank" rel="noopener">官方文档</a></p>
+</blockquote>
+<h1 id="第三个周期：重构IssueCard组件"><a href="#第三个周期：重构IssueCard组件" class="headerlink" title="第三个周期：重构IssueCard组件"></a>第三个周期：重构IssueCard组件</h1><p>在第一个周期中实现的 <code>IssueCard</code> 是写死的title，现在我们需要从外部传入第二周期中写的 <code>IssueModel</code>。</p>
+<p>先重构测试代码， <code>IssueCard</code> 传入 <code>issue</code> 对象</p>
+<pre><code>import &apos;package:flutter/material.dart&apos;;
+import &apos;package:flutter_test/flutter_test.dart&apos;;
+import &apos;package:zenhub_app_tdd/component/issue_card.dart&apos;;
+import &apos;package:zenhub_app_tdd/model/issue.dart&apos;;
+
+void main() {
+  testWidgets(&apos;Issue card component&apos;, (WidgetTester tester) async {
+    Issue issue = Issue.fromJson({
+      &apos;title&apos;: &apos;test title&apos;
+    });
+
+    await tester.pumpWidget(new MaterialApp(
+      home: IssueCard(issue: issue,)
+    ));
+
+    expect(find.text(&apos;test title&apos;), findsOneWidget);
+  });
+}</code></pre><p><code>IssueCard</code> 传入 <code>IssueModel</code>，期望显示 <code>test title</code> 这个字符串</p>
+<p>这时我们运行测试，确保这个测试是不通过的。</p>
+<p><img src="Untitled-dd95c0fa-cc0a-4d03-b065-f6b25a5b23ff.png" alt></p>
+<p>如我们所愿，测试报错了，接下来我们要做的是：</p>
+<ol>
+<li><p>在 <code>IssueCard</code> 中添加构造函数，入参为 <code>Issue</code></p>
+</li>
+<li><p><code>IssueCard</code> 的 <code>title</code> 替换为传入的 <code>issue.title</code></p>
+<p>import ‘package:flutter/material.dart’;<br>import ‘package:zenhub_app_tdd/model/issue.dart’;</p>
+<p>class IssueCard extends StatelessWidget {<br>  final Issue issue;</p>
+<p>  IssueCard({this.issue});</p>
+<p>  @override<br>  Widget build(BuildContext context) {</p>
+<pre><code>return Container(
+  child: Text(issue.title),
+);</code></pre><p>  }<br>}</p>
+</li>
+</ol>
+<p>再跑一次测试：</p>
+<p><img src="Untitled-11c1f928-8648-4e89-81d9-fba3bd182214.png" alt></p>
+<p>All test passed !!</p>
+<p>有没有很爽的感觉</p>
+<p>除了工程默认测试，我们写了两个测试，并重构了其中一个。</p>
+<p>整个过程你会发现，你并没有run你的工程，没有看你的实现效果，也没有调试的过程。</p>
+<p>这是一心一意写代码，没有其他干扰的三个TDD周期，完成了一个IssueCard组件，和Issue模型。</p>
+<p>那么接下来我们要集成进我们的页面显示了。</p>
+<h1 id="第四个周期：集成进UI"><a href="#第四个周期：集成进UI" class="headerlink" title="第四个周期：集成进UI"></a>第四个周期：集成进UI</h1><p>我们希望在首页展示一个 <code>IssueCard</code> 列表，所以我们新建一个 <code>IssueCardListView</code> 组件和测试。</p>
+<p>重构所有展示的组件以 <code>view</code> 结尾。</p>
+<p>和之前的套路一样，写一个 <code>IssueCardListView</code> 组件的测试。</p>
+<p>我们期望传入一个 <code>IssueCard</code> 组件的列表，并展示：</p>
+<pre><code>void main() {
+  testWidgets(&apos;should IssueCardListView show IssueCard List&apos;, (WidgetTester tester) async {
+    // Given
+    IssueModel issueOne = IssueModel.fromJson({
+      &apos;title&apos;: &apos;Issue One&apos;
+    });
+    IssueModel issueTwo = IssueModel.fromJson({
+      &apos;title&apos;: &apos;Issue Two&apos;
+    });
+    IssueCardView issueCardOne = IssueCardView(issue: issueOne);
+    IssueCardView issueCardTwo = IssueCardView(issue: issueTwo);
+    List&lt;IssueCardView&gt; issueCardList = [issueCardOne, issueCardTwo];
+
+    // When
+    IssueCardListView issueCardListView = IssueCardListView(issueCardList: issueCardList);
+    await tester.pumpWidget(new MaterialApp(
+      home: issueCardListView
+    ));
+
+    // Then
+    expect(find.text(&apos;Issue One&apos;), findsOneWidget);
+    expect(find.text(&apos;Issue Two&apos;), findsOneWidget);
+  });
+}</code></pre><p>可见， <code>IssueModel</code> 和 <code>IssueCard</code> 都是之前实现的内容，只是现在用这些来作为测试数据。</p>
+<p>我们需要新加的内容只是 <code>IssueCardList</code> 组件的测试。</p>
+<p>组件代码实现如下。</p>
+<pre><code>class IssueCardListView extends StatefulWidget {
+  final List&lt;IssueCardView&gt; issueCardList;
+
+  IssueCardListView({Key key, this.issueCardList}) : super(key: key);
+
+  @override
+  _Home createState() =&gt; _Home();
+}
+
+class _Home extends State&lt;IssueCardListView&gt; {
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+        itemCount: widget.issueCardList.length,
+        itemBuilder: (context, index) {
+          return widget.issueCardList[index];
+        });
+  }
+}</code></pre><h1 id="展示"><a href="#展示" class="headerlink" title="展示"></a>展示</h1><p>接下来一步便是在MyApp中展示我们的IssueCardListView，我们不会添加MyApp的测试，因为这是属于集成测试了，而不关乎我们的单元代码。</p>
+<pre><code>void main() =&gt; runApp(MyApp());
+
+class MyApp extends StatelessWidget {
+
+  @override
+  Widget build(BuildContext context) {
+    IssueCardView issueCardViewOne = IssueCardView(issue: IssueModel.fromJson({
+      &apos;title&apos;: &apos;Issue One&apos;
+    }),);
+    IssueCardView issueCardViewTwo = IssueCardView(issue: IssueModel.fromJson({
+      &apos;title&apos;: &apos;Issue Two&apos;
+    }),);
+    List&lt;IssueCardView&gt; issueCardViewList = [issueCardViewOne, issueCardViewTwo];
+
+    return MaterialApp(
+      title: &apos;Flutter Demo&apos;,
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: IssueCardListView(issueCardList: issueCardViewList,),
+    );
+  }
+}</code></pre><p>目前我们甚至还未run过我们的项目，</p>
+<p>那么我们跑run一次项目，看看最终效果吧。</p>
+<p><img src="Untitled-c4839b29-ce65-44b6-9676-031154a798f5.png" alt></p>
+<p>Done~</p>
+<p>我们期望的拥有 <code>Issue One</code> 和 <code>Issue Two</code> 的列表正常展示了。</p>
+<p>当然目前我们没有加任何的样式，只是完成了逻辑，所以UI非常的丑陋。</p>
+<p>接下来我们需要往里面加样式了，而加样式就不需要写样式了，相当于往骨架添加皮肤。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>目前我们实践了4个TDD周期。无一例外的，我们都遵循以下流程：</p>
+<ol>
+<li>快速写出小颗粒测试，使测试不通过</li>
+<li>快速实现通过小颗粒测试的代码，使测试通过</li>
+<li>重构，如命名</li>
+</ol>
+<p>如果只是通过测试来完成实现代码的话，我们会发现不需要顾虑其他的事情，而我们进行code view，会发现一些问题：</p>
+<ol>
+<li>issueCardList我们应该在哪更新呢？</li>
+<li>获取数据的业务代码还没设计呢</li>
+<li>。。。。</li>
+</ol>
+<p>这些关于设计的问题，我们在第零篇说过，有两种设计思路：</p>
+<blockquote>
+<ul>
+<li>重构驱动实现设计</li>
+<li>重构驱动设计并实现</li>
+</ul>
+</blockquote>
+<p>本篇目前所遵循的是第二种，由测试去驱动一切，包括设计。剩下的在功能继续增加时，继续重构出符合需求的设计就好了。</p>
+<p>在下篇中，将会在这基础上添加数据请求、数据更新的内容。</p>
+
+                    
+                        
+
+
+                    
+                    
+                        <p>
+                            <a
+                                href="/2019/08/13/Flutter-TDD-1/#post-footer"
+                                class="postShorten-excerpt_link link"
+                                aria-label=""
+                            >
+                                评论和共享
+                            </a>
+                        </p>
+                    
+                </div>
+            
+        </div>
+        
+    </article>
+    
+    
+    <article class="postShorten postShorten--thumbnailimg-bottom">
+        <div class="postShorten-wrap">
+            
+            <div class="postShorten-header">
+                <h1 class="postShorten-title">
+                    
+                        <a
+                            class="link-unstyled"
                             href="/2019/08/01/Flutter-TDD0/"
                             aria-label=": Flutter &amp; TDD 实践（零）：TDD简述"
                         >

@@ -1,0 +1,895 @@
+
+<!DOCTYPE html>
+<html lang="zh-cn">
+    
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="Archao的博客">
+    <title>Flutter &amp; TDD 实践（一）：组件和列表 - Archao的博客</title>
+    <meta name="author" content="Archao">
+    
+    
+    
+    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Archao","sameAs":["https://github.com/Archao-ME","archao-dev@gmail.com"],"image":"https://avatars2.githubusercontent.com/u/7686334?s=460&v=4"},"articleBody":"Flutter &amp; TDD 实践（一）：组件和列表我们要实现的东西整体效果草图：\n\n在第一部分的实践中，我们会用4个TDD周期实现两个组件（IssueCard和IssueCardList）和一个Model。\n总共有有四个TDD周期：\n\nIssueCard部分\nIssueModel数据模型部分\n重构IssueCard部分\nIssueCardList列表部分\n\n步骤如下：\n\n可以看到，除了在最后，我们都没有跑过一次项目构建，也没有通过看最终效果来验证我们的代码有没有问题就把逻辑写完了。\n这和以前的开发思维有很大的不同。传统开发可能写一行代码但是害怕代码有问题，于是我们会run一次看看最终效果。这一步骤被我们用测试代替了，把我们害怕的内容前置到测试阶段，之后就心无旁骛的写我们的实现了，不会再害怕代码出错，任何修改都有测试代码保驾护航。\n第一个TDD周期：IssueCard组件测试代码先快速写一个测试，我们要一个IssueCard组件，这个组件有一个test title的文本。\nimport &apos;package:flutter/material.dart&apos;;\nimport &apos;package:flutter_test/flutter_test.dart&apos;;\nimport &apos;package:zenhub_app_tdd/component/issue_card.dart&apos;;\n\nvoid main() {\n  testWidgets(&apos;Issue card component&apos;, (WidgetTester tester) async {\n\n    await tester.pumpWidget(new MaterialApp(\n      home: IssueCard()\n    ));\n\n    expect(find.text(&apos;test title&apos;), findsOneWidget);\n  });\n}写完跑一次测试，确保这个测试已运行且不通过。\n分析在实现逻辑使测试通过之前，我们先搞清楚测试用例的代码，有如下方法和实例：\n\n测试相关：testWidget、WidgetTester、pumpWidget、expect\n业务相关：MeterialApp、IssueCard\n\n组件测试代码模板testWidgets是 test 方法的升级版，其提供 WidgetTester 实例，WidgetTester主要有三部分功能：\n\n提供 pumpWidget 方法，用于在测试环境中挂载和渲染组件\n提供 pump 和 pumpAndSettle 用于重新渲染组件\n提供模拟用户行为的功能，如点击、滚动、查询组件等。\n\n因此在一个组件的测试代码模板是这样的：\nvoid main() {\n  testWidgets(&apos;Description&apos;, (WidgetTester tester) async {\n\n    await tester.pumpWidget(YourComponent);\n\n    expect(A), B);\n  });\n}之后在 tester.pumpWidget中挂载我们要测试的组件即可。\n我们可以将这一套代码加入编辑器的模板代码库中，提高编写新建用例时的速度。\nMaterialApp/CupertinoApp在第一个测试的代码中，我们看到IssueCard组件被MaterialApp包装起来了:\nawait tester.pumpWidget(new MaterialApp(\n    home: IssueCard()\n));那么 MaterialApp是什么呢?\nMaterialApp 是官方提供的Material设计风格的组件库，用于统一设计风格、快速开发。其提供了大量的组件，包括了App结构、导航以及各种常用控件，具体可查阅官方文档。\n如果在组件用使用了 MaterialApp 提供的组件，那么需要用 MaterialApp 来作为父节点提供运行环境。\n同理， CupertinoApp 是IOS风格的组件库，使用方法和 MaterialApp 一致。\n\n断言expect(find.text(&apos;test title&apos;), findsOneWidget);断言语句很简单，expect的入参有两个：目标和结果。\n当目标符合结果时，通过测试，反之不通过。\n显然上面代码意思是：在挂载的组件中找 test title 关键字， 若找到且只有一个组件则通过测试。\n除了 findsOneWidget 之外还有 findsNothing、 findsWidgets、 findsNWidgets\n分别是：\n\nfindsNothing ：没有该组件\nfindsWidgets ：找到有多个组件\nfindsNWidgets ：找到特定数量的组件，如 findsNWidgets(2)\n\n第一个TDD周期：实现代码接下来我们将实现代码，让测试通过。\nimport &apos;package:flutter/material.dart&apos;;\nimport &apos;package:zenhub_app_tdd/model/issue.dart&apos;;\n\nclass IssueCard extends StatelessWidget {\n\n  @override\n  Widget build(BuildContext context) {\n    return Container(\n      child: Text(&apos;test title&apos;),\n    );\n  }\n}几行代码使测试通过，用一个 Container 组件包含一个显示 test title 的 Text 组件。\n代码足够简单也无需重构，所以我们快速的完成第一个TDD周期。\n第一个TDD周期所做的事情非常简单，也需要非常简单。\n以后的每一个TDD周期也是如此简单（代码量少和颗粒度小）。\n第二个周期：Issue Model这时我们还不能传入自定义参数给组件展示，于是我们开始第二个TDD周期\n在Dart中，我们不能像JS一样直接接收JSON并直接使用。\n为此我们需要一个类，JSON作为构造函数的入参。\n实例化后的对象拥有JSON一样的属性和值\n\n具体用法可以看下面的测试代码（可见测试代码也是可以当文档用的）\n测试有了想法后开始写测试：\nvoid main() {\n  test(&apos;should Issue model from json&apos;, () {\n    Issue issue = Issue.fromJson({\n      &apos;title&apos;: &apos;test title&apos;\n    });\n    expect(issue.title, equals(&apos;test title&apos;));\n  });\n}分析Dart的构造函数在Dart中，实例化一个类时 new 关键字是可以省略的，所以 new A() 也等于 A() \n另外Dart是可以拥有具名构造函数的，所以构造函数名字可以为 ClassName 或者 ClassName.identifier  \n我们通过 Issue.fromJson 具名构造函数来实例化 Issue。\n那么可以用这个特性来实现通过JSON实例化Issue了：\n实现代码class Issue {\n  String title;\n  Issue.fromJson(Map&lt;String, dynamic&gt; json) :\n      title = json[&apos;title&apos;];\n}当有一天 Issue 需要接收 XML 的数据时，我们只需要加 Issue.fromXML 构造函数即可。\n\n在Flutter中，在处理JSON数据时我们需要自己进行转换或者使用第三方库，可见官方文档\n\n第三个周期：重构IssueCard组件在第一个周期中实现的 IssueCard 是写死的title，现在我们需要从外部传入第二周期中写的 IssueModel。\n先重构测试代码， IssueCard 传入 issue 对象\nimport &apos;package:flutter/material.dart&apos;;\nimport &apos;package:flutter_test/flutter_test.dart&apos;;\nimport &apos;package:zenhub_app_tdd/component/issue_card.dart&apos;;\nimport &apos;package:zenhub_app_tdd/model/issue.dart&apos;;\n\nvoid main() {\n  testWidgets(&apos;Issue card component&apos;, (WidgetTester tester) async {\n    Issue issue = Issue.fromJson({\n      &apos;title&apos;: &apos;test title&apos;\n    });\n\n    await tester.pumpWidget(new MaterialApp(\n      home: IssueCard(issue: issue,)\n    ));\n\n    expect(find.text(&apos;test title&apos;), findsOneWidget);\n  });\n}IssueCard 传入 IssueModel，期望显示 test title 这个字符串\n这时我们运行测试，确保这个测试是不通过的。\n\n如我们所愿，测试报错了，接下来我们要做的是：\n\n在 IssueCard 中添加构造函数，入参为 Issue\n\nIssueCard 的 title 替换为传入的 issue.title\nimport ‘package:flutter/material.dart’;import ‘package:zenhub_app_tdd/model/issue.dart’;\nclass IssueCard extends StatelessWidget {  final Issue issue;\n  IssueCard({this.issue});\n  @override  Widget build(BuildContext context) {\nreturn Container(\n  child: Text(issue.title),\n);  }}\n\n\n再跑一次测试：\n\nAll test passed !!\n有没有很爽的感觉\n除了工程默认测试，我们写了两个测试，并重构了其中一个。\n整个过程你会发现，你并没有run你的工程，没有看你的实现效果，也没有调试的过程。\n这是一心一意写代码，没有其他干扰的三个TDD周期，完成了一个IssueCard组件，和Issue模型。\n那么接下来我们要集成进我们的页面显示了。\n第四个周期：集成进UI我们希望在首页展示一个 IssueCard 列表，所以我们新建一个 IssueCardListView 组件和测试。\n重构所有展示的组件以 view 结尾。\n和之前的套路一样，写一个 IssueCardListView 组件的测试。\n我们期望传入一个 IssueCard 组件的列表，并展示：\nvoid main() {\n  testWidgets(&apos;should IssueCardListView show IssueCard List&apos;, (WidgetTester tester) async {\n    // Given\n    IssueModel issueOne = IssueModel.fromJson({\n      &apos;title&apos;: &apos;Issue One&apos;\n    });\n    IssueModel issueTwo = IssueModel.fromJson({\n      &apos;title&apos;: &apos;Issue Two&apos;\n    });\n    IssueCardView issueCardOne = IssueCardView(issue: issueOne);\n    IssueCardView issueCardTwo = IssueCardView(issue: issueTwo);\n    List&lt;IssueCardView&gt; issueCardList = [issueCardOne, issueCardTwo];\n\n    // When\n    IssueCardListView issueCardListView = IssueCardListView(issueCardList: issueCardList);\n    await tester.pumpWidget(new MaterialApp(\n      home: issueCardListView\n    ));\n\n    // Then\n    expect(find.text(&apos;Issue One&apos;), findsOneWidget);\n    expect(find.text(&apos;Issue Two&apos;), findsOneWidget);\n  });\n}可见， IssueModel 和 IssueCard 都是之前实现的内容，只是现在用这些来作为测试数据。\n我们需要新加的内容只是 IssueCardList 组件的测试。\n组件代码实现如下。\nclass IssueCardListView extends StatefulWidget {\n  final List&lt;IssueCardView&gt; issueCardList;\n\n  IssueCardListView({Key key, this.issueCardList}) : super(key: key);\n\n  @override\n  _Home createState() =&gt; _Home();\n}\n\nclass _Home extends State&lt;IssueCardListView&gt; {\n  @override\n  Widget build(BuildContext context) {\n    return ListView.builder(\n        itemCount: widget.issueCardList.length,\n        itemBuilder: (context, index) {\n          return widget.issueCardList[index];\n        });\n  }\n}展示接下来一步便是在MyApp中展示我们的IssueCardListView，我们不会添加MyApp的测试，因为这是属于集成测试了，而不关乎我们的单元代码。\nvoid main() =&gt; runApp(MyApp());\n\nclass MyApp extends StatelessWidget {\n\n  @override\n  Widget build(BuildContext context) {\n    IssueCardView issueCardViewOne = IssueCardView(issue: IssueModel.fromJson({\n      &apos;title&apos;: &apos;Issue One&apos;\n    }),);\n    IssueCardView issueCardViewTwo = IssueCardView(issue: IssueModel.fromJson({\n      &apos;title&apos;: &apos;Issue Two&apos;\n    }),);\n    List&lt;IssueCardView&gt; issueCardViewList = [issueCardViewOne, issueCardViewTwo];\n\n    return MaterialApp(\n      title: &apos;Flutter Demo&apos;,\n      theme: ThemeData(\n        primarySwatch: Colors.blue,\n      ),\n      home: IssueCardListView(issueCardList: issueCardViewList,),\n    );\n  }\n}目前我们甚至还未run过我们的项目，\n那么我们跑run一次项目，看看最终效果吧。\n\nDone~\n我们期望的拥有 Issue One 和 Issue Two 的列表正常展示了。\n当然目前我们没有加任何的样式，只是完成了逻辑，所以UI非常的丑陋。\n接下来我们需要往里面加样式了，而加样式就不需要写样式了，相当于往骨架添加皮肤。\n总结目前我们实践了4个TDD周期。无一例外的，我们都遵循以下流程：\n\n快速写出小颗粒测试，使测试不通过\n快速实现通过小颗粒测试的代码，使测试通过\n重构，如命名\n\n如果只是通过测试来完成实现代码的话，我们会发现不需要顾虑其他的事情，而我们进行code view，会发现一些问题：\n\nissueCardList我们应该在哪更新呢？\n获取数据的业务代码还没设计呢\n。。。。\n\n这些关于设计的问题，我们在第零篇说过，有两种设计思路：\n\n\n重构驱动实现设计\n重构驱动设计并实现\n\n\n本篇目前所遵循的是第二种，由测试去驱动一切，包括设计。剩下的在功能继续增加时，继续重构出符合需求的设计就好了。\n在下篇中，将会在这基础上添加数据请求、数据更新的内容。\n","dateCreated":"2019-08-13T16:09:44+08:00","dateModified":"2019-08-13T16:11:28+08:00","datePublished":"2019-08-13T16:09:44+08:00","description":"","headline":"Flutter & TDD 实践（一）：组件和列表","image":[],"mainEntityOfPage":{"@type":"WebPage","@id":"http://yoursite.com/2019/08/13/Flutter-TDD-1/"},"publisher":{"@type":"Organization","name":"Archao","sameAs":["https://github.com/Archao-ME","archao-dev@gmail.com"],"image":"https://avatars2.githubusercontent.com/u/7686334?s=460&v=4","logo":{"@type":"ImageObject","url":"https://avatars2.githubusercontent.com/u/7686334?s=460&v=4"}},"url":"http://yoursite.com/2019/08/13/Flutter-TDD-1/","keywords":"TDD, Flutter"}</script>
+    <meta name="description" content="Flutter &amp;amp; TDD 实践（一）：组件和列表我们要实现的东西整体效果草图：  在第一部分的实践中，我们会用4个TDD周期实现两个组件（IssueCard和IssueCardList）和一个Model。 总共有有四个TDD周期：  IssueCard部分 IssueModel数据模型部分 重构IssueCard部分 IssueCardList列表部分  步骤如下：  可以看到，除了在最">
+<meta name="keywords" content="TDD,Flutter">
+<meta property="og:type" content="blog">
+<meta property="og:title" content="Flutter &amp; TDD 实践（一）：组件和列表">
+<meta property="og:url" content="http://yoursite.com/2019/08/13/Flutter-TDD-1/index.html">
+<meta property="og:site_name" content="Archao的博客">
+<meta property="og:description" content="Flutter &amp;amp; TDD 实践（一）：组件和列表我们要实现的东西整体效果草图：  在第一部分的实践中，我们会用4个TDD周期实现两个组件（IssueCard和IssueCardList）和一个Model。 总共有有四个TDD周期：  IssueCard部分 IssueModel数据模型部分 重构IssueCard部分 IssueCardList列表部分  步骤如下：  可以看到，除了在最">
+<meta property="og:locale" content="zh-cn">
+<meta property="og:image" content="http://yoursite.com/2019/08/13/Flutter-TDD-1/Untitled-49ed6c0e-770d-494e-9956-82453b308ede.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/13/Flutter-TDD-1/Untitled-eef214de-83be-442a-9aa8-632cd4be0ffc.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/13/Flutter-TDD-1/Untitled-bb82646d-8052-4d07-9bf2-855098dd5198.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/13/Flutter-TDD-1/Untitled-d9ace57a-8434-46f0-9dd5-b5c577ddbdbb.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/13/Flutter-TDD-1/Untitled-dd95c0fa-cc0a-4d03-b065-f6b25a5b23ff.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/13/Flutter-TDD-1/Untitled-11c1f928-8648-4e89-81d9-fba3bd182214.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/13/Flutter-TDD-1/Untitled-c4839b29-ce65-44b6-9676-031154a798f5.png">
+<meta property="og:updated_time" content="2019-08-13T08:11:28.717Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Flutter &amp; TDD 实践（一）：组件和列表">
+<meta name="twitter:description" content="Flutter &amp;amp; TDD 实践（一）：组件和列表我们要实现的东西整体效果草图：  在第一部分的实践中，我们会用4个TDD周期实现两个组件（IssueCard和IssueCardList）和一个Model。 总共有有四个TDD周期：  IssueCard部分 IssueModel数据模型部分 重构IssueCard部分 IssueCardList列表部分  步骤如下：  可以看到，除了在最">
+<meta name="twitter:image" content="http://yoursite.com/2019/08/13/Flutter-TDD-1/Untitled-49ed6c0e-770d-494e-9956-82453b308ede.png">
+    
+    
+        
+    
+    
+        <meta property="og:image" content="https://avatars2.githubusercontent.com/u/7686334?s=460&amp;v=4"/>
+    
+    
+    
+    
+    <!--STYLES-->
+    <link rel="stylesheet" href="/assets/css/style-n0wyjkqqnn8nd2p5kkvpt0uctvd0dkjifqouejhxwkjprhsksoin2v0cbfs0.min.css">
+    <!--STYLES END-->
+    
+
+    
+
+    
+        
+            <link rel="stylesheet" href="/assets/css/gitalk.css">
+        
+    
+</head>
+
+    <body>
+        <div id="blog">
+            <!-- Define author's picture -->
+
+
+    
+        
+            
+        
+    
+
+<header id="header" data-behavior="4">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <div class="header-title">
+        <a
+            class="header-title-link"
+            href="/ "
+            aria-label=""
+        >
+            Archao的博客
+        </a>
+    </div>
+    
+        
+            <a
+                class="header-right-picture "
+                href="#about"
+                aria-label="打开链接: /#about"
+            >
+        
+        
+            <img class="header-picture" src="https://avatars2.githubusercontent.com/u/7686334?s=460&amp;v=4" alt="作者的图片"/>
+        
+        </a>
+    
+</header>
+
+            <!-- Define author's picture -->
+
+
+
+        
+    
+
+<nav id="sidebar" data-behavior="4">
+    <div class="sidebar-container">
+        
+            <div class="sidebar-profile">
+                <a
+                    href="/#about"
+                    aria-label="阅读有关作者的更多信息"
+                >
+                    <img class="sidebar-profile-picture" src="https://avatars2.githubusercontent.com/u/7686334?s=460&amp;v=4" alt="作者的图片"/>
+                </a>
+                <h4 class="sidebar-profile-name">Archao</h4>
+                
+                    <h5 class="sidebar-profile-bio"><p> 前端工程师<br>勉强上靶子的弓箭爱好者<br>德州PS NL5 未破产玩家</p>
+</h5>
+                
+            </div>
+        
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/ "
+                            
+                            title="首页"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-home" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">首页</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-categories"
+                            
+                            title="分类"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-bookmark" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">分类</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-tags"
+                            
+                            title="标签"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-tags" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">标签</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-archives"
+                            
+                            title="归档"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-archive" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">归档</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link open-algolia-search"
+                             href="#search"
+                            
+                            title="搜索"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-search" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">搜索</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="#about"
+                            
+                            title="关于"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-question" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">关于</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://github.com/Archao-ME" target="_blank" rel="noopener" title="GitHub">
+                    
+                        <i class="sidebar-button-icon fab fa-github" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">GitHub</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/archao-dev@gmail.com"
+                            title="邮箱"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-envelope" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">邮箱</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/atom.xml"
+                            
+                            title="RSS"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-rss" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">RSS</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+    </div>
+</nav>
+
+            
+            <div id="main" data-behavior="4"
+                 class="
+                        hasCoverMetaIn
+                        ">
+                
+<article class="post">
+    
+    
+        <div class="post-header main-content-wrap text-left">
+    
+        <h1 class="post-title">
+            Flutter &amp; TDD 实践（一）：组件和列表
+        </h1>
+    
+    
+        <div class="post-meta">
+    <time datetime="2019-08-13T16:09:44+08:00">
+	
+		    8月 13, 2019
+    	
+    </time>
+    
+</div>
+
+    
+</div>
+
+    
+    <div class="post-content markdown">
+        <div class="main-content-wrap">
+            <h1 id="Flutter-amp-TDD-实践（一）：组件和列表"><a href="#Flutter-amp-TDD-实践（一）：组件和列表" class="headerlink" title="Flutter &amp; TDD 实践（一）：组件和列表"></a>Flutter &amp; TDD 实践（一）：组件和列表</h1><p>我们要实现的东西整体效果草图：</p>
+<p><img src="Untitled-49ed6c0e-770d-494e-9956-82453b308ede.png" alt></p>
+<p>在第一部分的实践中，我们会用4个TDD周期实现两个组件（IssueCard和IssueCardList）和一个Model。</p>
+<p>总共有有四个TDD周期：</p>
+<ol>
+<li>IssueCard部分</li>
+<li>IssueModel数据模型部分</li>
+<li>重构IssueCard部分</li>
+<li>IssueCardList列表部分</li>
+</ol>
+<p>步骤如下：</p>
+<p><img src="Untitled-eef214de-83be-442a-9aa8-632cd4be0ffc.png" alt></p>
+<p>可以看到，除了在最后，我们都没有跑过一次项目构建，也没有通过看最终效果来验证我们的代码有没有问题就把逻辑写完了。</p>
+<p>这和以前的开发思维有很大的不同。<br>传统开发可能写一行代码但是害怕代码有问题，于是我们会run一次看看最终效果。这一步骤被我们用测试代替了，把我们害怕的内容前置到测试阶段，之后就心无旁骛的写我们的实现了，不会再害怕代码出错，任何修改都有测试代码保驾护航。</p>
+<h1 id="第一个TDD周期：IssueCard组件"><a href="#第一个TDD周期：IssueCard组件" class="headerlink" title="第一个TDD周期：IssueCard组件"></a>第一个TDD周期：IssueCard组件</h1><h2 id="测试代码"><a href="#测试代码" class="headerlink" title="测试代码"></a>测试代码</h2><p>先快速写一个测试，我们要一个IssueCard组件，这个组件有一个<code>test title</code>的文本。</p>
+<pre><code>import &apos;package:flutter/material.dart&apos;;
+import &apos;package:flutter_test/flutter_test.dart&apos;;
+import &apos;package:zenhub_app_tdd/component/issue_card.dart&apos;;
+
+void main() {
+  testWidgets(&apos;Issue card component&apos;, (WidgetTester tester) async {
+
+    await tester.pumpWidget(new MaterialApp(
+      home: IssueCard()
+    ));
+
+    expect(find.text(&apos;test title&apos;), findsOneWidget);
+  });
+}</code></pre><p>写完跑一次测试，确保这个测试已运行且不通过。</p>
+<h3 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h3><p>在实现逻辑使测试通过之前，我们先搞清楚测试用例的代码，有如下方法和实例：</p>
+<ul>
+<li>测试相关：<code>testWidget</code>、<code>WidgetTester</code>、<code>pumpWidget</code>、<code>expect</code></li>
+<li>业务相关：<code>MeterialApp</code>、<code>IssueCard</code></li>
+</ul>
+<h3 id="组件测试代码模板"><a href="#组件测试代码模板" class="headerlink" title="组件测试代码模板"></a>组件测试代码模板</h3><p><code>testWidgets</code>是 <code>test</code> 方法的升级版，其提供 <code>WidgetTester</code> 实例，<code>WidgetTester</code>主要有三部分功能：</p>
+<ul>
+<li>提供 <code>pumpWidget</code> 方法，用于在测试环境中挂载和渲染组件</li>
+<li>提供 <code>pump</code> 和 <code>pumpAndSettle</code> 用于重新渲染组件</li>
+<li>提供模拟用户行为的功能，如点击、滚动、查询组件等。</li>
+</ul>
+<p>因此在一个组件的测试代码模板是这样的：</p>
+<pre><code>void main() {
+  testWidgets(&apos;Description&apos;, (WidgetTester tester) async {
+
+    await tester.pumpWidget(YourComponent);
+
+    expect(A), B);
+  });
+}</code></pre><p>之后在 <code>tester.pumpWidget</code>中挂载我们要测试的组件即可。</p>
+<p>我们可以将这一套代码加入编辑器的模板代码库中，提高编写新建用例时的速度。</p>
+<h3 id="MaterialApp-CupertinoApp"><a href="#MaterialApp-CupertinoApp" class="headerlink" title="MaterialApp/CupertinoApp"></a>MaterialApp/CupertinoApp</h3><p>在第一个测试的代码中，我们看到<code>IssueCard</code>组件被<code>MaterialApp</code>包装起来了:</p>
+<pre><code>await tester.pumpWidget(new MaterialApp(
+    home: IssueCard()
+));</code></pre><p>那么 <code>MaterialApp</code>是什么呢?</p>
+<p><code>MaterialApp</code> 是官方提供的<a href="https://material.io/" target="_blank" rel="noopener">Material</a>设计风格的组件库，用于统一设计风格、快速开发。其提供了大量的组件，包括了App结构、导航以及各种常用控件，具体可查阅官方文档。</p>
+<p>如果在组件用使用了 <code>MaterialApp</code> 提供的组件，那么需要用 <code>MaterialApp</code> 来作为父节点提供运行环境。</p>
+<p>同理， <code>CupertinoApp</code> 是IOS风格的组件库，使用方法和 <code>MaterialApp</code> 一致。</p>
+<p><img src="Untitled-bb82646d-8052-4d07-9bf2-855098dd5198.png" alt></p>
+<h3 id="断言"><a href="#断言" class="headerlink" title="断言"></a>断言</h3><pre><code>expect(find.text(&apos;test title&apos;), findsOneWidget);</code></pre><p>断言语句很简单，<code>expect</code>的入参有两个：目标和结果。</p>
+<p>当目标符合结果时，通过测试，反之不通过。</p>
+<p>显然上面代码意思是：在挂载的组件中找 <code>test title</code> 关键字， 若找到且只有一个组件则通过测试。</p>
+<p>除了 <code>findsOneWidget</code> 之外还有 <code>findsNothing</code>、 <code>findsWidgets</code>、 <code>findsNWidgets</code></p>
+<p>分别是：</p>
+<ul>
+<li><code>findsNothing</code> ：没有该组件</li>
+<li><code>findsWidgets</code> ：找到有多个组件</li>
+<li><code>findsNWidgets</code> ：找到特定数量的组件，如 <code>findsNWidgets(2)</code></li>
+</ul>
+<h1 id="第一个TDD周期：实现代码"><a href="#第一个TDD周期：实现代码" class="headerlink" title="第一个TDD周期：实现代码"></a>第一个TDD周期：实现代码</h1><p>接下来我们将实现代码，让测试通过。</p>
+<pre><code>import &apos;package:flutter/material.dart&apos;;
+import &apos;package:zenhub_app_tdd/model/issue.dart&apos;;
+
+class IssueCard extends StatelessWidget {
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: Text(&apos;test title&apos;),
+    );
+  }
+}</code></pre><p>几行代码使测试通过，用一个 <code>Container</code> 组件包含一个显示 <code>test title</code> 的 <code>Text</code> 组件。</p>
+<p>代码足够简单也无需重构，所以我们快速的完成第一个TDD周期。</p>
+<p>第一个TDD周期所做的事情非常简单，也需要非常简单。</p>
+<p>以后的每一个TDD周期也是如此简单（代码量少和颗粒度小）。</p>
+<h1 id="第二个周期：Issue-Model"><a href="#第二个周期：Issue-Model" class="headerlink" title="第二个周期：Issue Model"></a>第二个周期：Issue Model</h1><p>这时我们还不能传入自定义参数给组件展示，于是我们开始第二个TDD周期</p>
+<p>在Dart中，我们不能像JS一样直接接收JSON并直接使用。</p>
+<p>为此我们需要一个类，JSON作为构造函数的入参。</p>
+<p>实例化后的对象拥有JSON一样的属性和值</p>
+<p><img src="Untitled-d9ace57a-8434-46f0-9dd5-b5c577ddbdbb.png" alt></p>
+<p>具体用法可以看下面的测试代码（可见测试代码也是可以当文档用的）</p>
+<h2 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h2><p>有了想法后开始写测试：</p>
+<pre><code>void main() {
+  test(&apos;should Issue model from json&apos;, () {
+    Issue issue = Issue.fromJson({
+      &apos;title&apos;: &apos;test title&apos;
+    });
+    expect(issue.title, equals(&apos;test title&apos;));
+  });
+}</code></pre><h2 id="分析-1"><a href="#分析-1" class="headerlink" title="分析"></a>分析</h2><h3 id="Dart的构造函数"><a href="#Dart的构造函数" class="headerlink" title="Dart的构造函数"></a>Dart的构造函数</h3><p>在Dart中，实例化一个类时 <code>new</code> 关键字是可以省略的，所以 <code>new A()</code> 也等于 <code>A()</code> </p>
+<p>另外Dart是可以拥有具名构造函数的，所以构造函数名字可以为 <code>ClassName</code> 或者 <code>ClassName.identifier</code>  </p>
+<p>我们通过 <code>Issue.fromJson</code> 具名构造函数来实例化 <code>Issue</code>。</p>
+<p>那么可以用这个特性来实现通过JSON实例化Issue了：</p>
+<h2 id="实现代码"><a href="#实现代码" class="headerlink" title="实现代码"></a>实现代码</h2><pre><code>class Issue {
+  String title;
+  Issue.fromJson(Map&lt;String, dynamic&gt; json) :
+      title = json[&apos;title&apos;];
+}</code></pre><p>当有一天 <code>Issue</code> 需要接收 <code>XML</code> 的数据时，我们只需要加 <code>Issue.fromXML</code> 构造函数即可。</p>
+<blockquote>
+<p>在Flutter中，在处理JSON数据时我们需要自己进行转换或者使用第三方库，可见<a href="https://flutterchina.club/json/" target="_blank" rel="noopener">官方文档</a></p>
+</blockquote>
+<h1 id="第三个周期：重构IssueCard组件"><a href="#第三个周期：重构IssueCard组件" class="headerlink" title="第三个周期：重构IssueCard组件"></a>第三个周期：重构IssueCard组件</h1><p>在第一个周期中实现的 <code>IssueCard</code> 是写死的title，现在我们需要从外部传入第二周期中写的 <code>IssueModel</code>。</p>
+<p>先重构测试代码， <code>IssueCard</code> 传入 <code>issue</code> 对象</p>
+<pre><code>import &apos;package:flutter/material.dart&apos;;
+import &apos;package:flutter_test/flutter_test.dart&apos;;
+import &apos;package:zenhub_app_tdd/component/issue_card.dart&apos;;
+import &apos;package:zenhub_app_tdd/model/issue.dart&apos;;
+
+void main() {
+  testWidgets(&apos;Issue card component&apos;, (WidgetTester tester) async {
+    Issue issue = Issue.fromJson({
+      &apos;title&apos;: &apos;test title&apos;
+    });
+
+    await tester.pumpWidget(new MaterialApp(
+      home: IssueCard(issue: issue,)
+    ));
+
+    expect(find.text(&apos;test title&apos;), findsOneWidget);
+  });
+}</code></pre><p><code>IssueCard</code> 传入 <code>IssueModel</code>，期望显示 <code>test title</code> 这个字符串</p>
+<p>这时我们运行测试，确保这个测试是不通过的。</p>
+<p><img src="Untitled-dd95c0fa-cc0a-4d03-b065-f6b25a5b23ff.png" alt></p>
+<p>如我们所愿，测试报错了，接下来我们要做的是：</p>
+<ol>
+<li><p>在 <code>IssueCard</code> 中添加构造函数，入参为 <code>Issue</code></p>
+</li>
+<li><p><code>IssueCard</code> 的 <code>title</code> 替换为传入的 <code>issue.title</code></p>
+<p>import ‘package:flutter/material.dart’;<br>import ‘package:zenhub_app_tdd/model/issue.dart’;</p>
+<p>class IssueCard extends StatelessWidget {<br>  final Issue issue;</p>
+<p>  IssueCard({this.issue});</p>
+<p>  @override<br>  Widget build(BuildContext context) {</p>
+<pre><code>return Container(
+  child: Text(issue.title),
+);</code></pre><p>  }<br>}</p>
+</li>
+</ol>
+<p>再跑一次测试：</p>
+<p><img src="Untitled-11c1f928-8648-4e89-81d9-fba3bd182214.png" alt></p>
+<p>All test passed !!</p>
+<p>有没有很爽的感觉</p>
+<p>除了工程默认测试，我们写了两个测试，并重构了其中一个。</p>
+<p>整个过程你会发现，你并没有run你的工程，没有看你的实现效果，也没有调试的过程。</p>
+<p>这是一心一意写代码，没有其他干扰的三个TDD周期，完成了一个IssueCard组件，和Issue模型。</p>
+<p>那么接下来我们要集成进我们的页面显示了。</p>
+<h1 id="第四个周期：集成进UI"><a href="#第四个周期：集成进UI" class="headerlink" title="第四个周期：集成进UI"></a>第四个周期：集成进UI</h1><p>我们希望在首页展示一个 <code>IssueCard</code> 列表，所以我们新建一个 <code>IssueCardListView</code> 组件和测试。</p>
+<p>重构所有展示的组件以 <code>view</code> 结尾。</p>
+<p>和之前的套路一样，写一个 <code>IssueCardListView</code> 组件的测试。</p>
+<p>我们期望传入一个 <code>IssueCard</code> 组件的列表，并展示：</p>
+<pre><code>void main() {
+  testWidgets(&apos;should IssueCardListView show IssueCard List&apos;, (WidgetTester tester) async {
+    // Given
+    IssueModel issueOne = IssueModel.fromJson({
+      &apos;title&apos;: &apos;Issue One&apos;
+    });
+    IssueModel issueTwo = IssueModel.fromJson({
+      &apos;title&apos;: &apos;Issue Two&apos;
+    });
+    IssueCardView issueCardOne = IssueCardView(issue: issueOne);
+    IssueCardView issueCardTwo = IssueCardView(issue: issueTwo);
+    List&lt;IssueCardView&gt; issueCardList = [issueCardOne, issueCardTwo];
+
+    // When
+    IssueCardListView issueCardListView = IssueCardListView(issueCardList: issueCardList);
+    await tester.pumpWidget(new MaterialApp(
+      home: issueCardListView
+    ));
+
+    // Then
+    expect(find.text(&apos;Issue One&apos;), findsOneWidget);
+    expect(find.text(&apos;Issue Two&apos;), findsOneWidget);
+  });
+}</code></pre><p>可见， <code>IssueModel</code> 和 <code>IssueCard</code> 都是之前实现的内容，只是现在用这些来作为测试数据。</p>
+<p>我们需要新加的内容只是 <code>IssueCardList</code> 组件的测试。</p>
+<p>组件代码实现如下。</p>
+<pre><code>class IssueCardListView extends StatefulWidget {
+  final List&lt;IssueCardView&gt; issueCardList;
+
+  IssueCardListView({Key key, this.issueCardList}) : super(key: key);
+
+  @override
+  _Home createState() =&gt; _Home();
+}
+
+class _Home extends State&lt;IssueCardListView&gt; {
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+        itemCount: widget.issueCardList.length,
+        itemBuilder: (context, index) {
+          return widget.issueCardList[index];
+        });
+  }
+}</code></pre><h1 id="展示"><a href="#展示" class="headerlink" title="展示"></a>展示</h1><p>接下来一步便是在MyApp中展示我们的IssueCardListView，我们不会添加MyApp的测试，因为这是属于集成测试了，而不关乎我们的单元代码。</p>
+<pre><code>void main() =&gt; runApp(MyApp());
+
+class MyApp extends StatelessWidget {
+
+  @override
+  Widget build(BuildContext context) {
+    IssueCardView issueCardViewOne = IssueCardView(issue: IssueModel.fromJson({
+      &apos;title&apos;: &apos;Issue One&apos;
+    }),);
+    IssueCardView issueCardViewTwo = IssueCardView(issue: IssueModel.fromJson({
+      &apos;title&apos;: &apos;Issue Two&apos;
+    }),);
+    List&lt;IssueCardView&gt; issueCardViewList = [issueCardViewOne, issueCardViewTwo];
+
+    return MaterialApp(
+      title: &apos;Flutter Demo&apos;,
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: IssueCardListView(issueCardList: issueCardViewList,),
+    );
+  }
+}</code></pre><p>目前我们甚至还未run过我们的项目，</p>
+<p>那么我们跑run一次项目，看看最终效果吧。</p>
+<p><img src="Untitled-c4839b29-ce65-44b6-9676-031154a798f5.png" alt></p>
+<p>Done~</p>
+<p>我们期望的拥有 <code>Issue One</code> 和 <code>Issue Two</code> 的列表正常展示了。</p>
+<p>当然目前我们没有加任何的样式，只是完成了逻辑，所以UI非常的丑陋。</p>
+<p>接下来我们需要往里面加样式了，而加样式就不需要写样式了，相当于往骨架添加皮肤。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>目前我们实践了4个TDD周期。无一例外的，我们都遵循以下流程：</p>
+<ol>
+<li>快速写出小颗粒测试，使测试不通过</li>
+<li>快速实现通过小颗粒测试的代码，使测试通过</li>
+<li>重构，如命名</li>
+</ol>
+<p>如果只是通过测试来完成实现代码的话，我们会发现不需要顾虑其他的事情，而我们进行code view，会发现一些问题：</p>
+<ol>
+<li>issueCardList我们应该在哪更新呢？</li>
+<li>获取数据的业务代码还没设计呢</li>
+<li>。。。。</li>
+</ol>
+<p>这些关于设计的问题，我们在第零篇说过，有两种设计思路：</p>
+<blockquote>
+<ul>
+<li>重构驱动实现设计</li>
+<li>重构驱动设计并实现</li>
+</ul>
+</blockquote>
+<p>本篇目前所遵循的是第二种，由测试去驱动一切，包括设计。剩下的在功能继续增加时，继续重构出符合需求的设计就好了。</p>
+<p>在下篇中，将会在这基础上添加数据请求、数据更新的内容。</p>
+
+            
+
+
+        </div>
+    </div>
+    <div id="post-footer" class="post-footer main-content-wrap">
+        
+            <div class="post-footer-tags">
+                <span class="text-color-light text-small">标签</span><br/>
+                
+    <a class="tag tag--primary tag--small t-link" href="/tags/Flutter/">Flutter</a> <a class="tag tag--primary tag--small t-link" href="/tags/TDD/">TDD</a>
+
+            </div>
+        
+        
+            <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    <a
+                        class="post-action-btn btn btn--disabled"
+                        aria-hidden="true"
+                    >
+                        
+                        <i class="fa fa-angle-left" aria-hidden="true"></i>
+                        <span class="hide-xs hide-sm text-small icon-ml">上一篇</span>
+                    </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2019/08/01/Flutter-TDD0/"
+                    data-tooltip="Flutter &amp; TDD 实践（零）：TDD简述"
+                    aria-label="下一篇: Flutter &amp; TDD 实践（零）：TDD简述"
+                >
+                    
+                        <span class="hide-xs hide-sm text-small icon-mr">下一篇</span>
+                        <i class="fa fa-angle-right" aria-hidden="true"></i>
+                    </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a
+                class="post-action-btn btn btn--default btn-open-shareoptions"
+                href="#btn-open-shareoptions"
+                aria-label="Diesen Beitrag teilen"
+            >
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://yoursite.com/2019/08/13/Flutter-TDD-1/"
+                    title="分享到 Facebook"
+                    aria-label="分享到 Facebook"
+                >
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="https://twitter.com/intent/tweet?text=http://yoursite.com/2019/08/13/Flutter-TDD-1/"
+                    title="分享到 Twitter"
+                    aria-label="分享到 Twitter"
+                >
+                    <i class="fab fa-twitter" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="https://plus.google.com/share?url=http://yoursite.com/2019/08/13/Flutter-TDD-1/"
+                    title="分享到 Google+"
+                    aria-label="分享到 Google+"
+                >
+                    <i class="fab fa-google-plus" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+                <li class="post-action">
+                    <a
+                        class="post-action-btn btn btn--default"
+                        href="#gitalk"
+                        aria-label="Kommentieren"
+                    >
+                        <i class="fa fa-comment"></i>
+                    </a>
+                </li>
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="Nach oben">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+        
+        
+            
+                <div id="gitalk"></div>
+
+            
+        
+    </div>
+</article>
+
+
+
+                <footer id="footer" class="main-content-wrap">
+    <span class="copyrights">
+        Copyrights &copy; 2019 Archao. All Rights Reserved.
+    </span>
+</footer>
+
+            </div>
+            
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+                    <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    <a
+                        class="post-action-btn btn btn--disabled"
+                        aria-hidden="true"
+                    >
+                        
+                        <i class="fa fa-angle-left" aria-hidden="true"></i>
+                        <span class="hide-xs hide-sm text-small icon-ml">上一篇</span>
+                    </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2019/08/01/Flutter-TDD0/"
+                    data-tooltip="Flutter &amp; TDD 实践（零）：TDD简述"
+                    aria-label="下一篇: Flutter &amp; TDD 实践（零）：TDD简述"
+                >
+                    
+                        <span class="hide-xs hide-sm text-small icon-mr">下一篇</span>
+                        <i class="fa fa-angle-right" aria-hidden="true"></i>
+                    </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a
+                class="post-action-btn btn btn--default btn-open-shareoptions"
+                href="#btn-open-shareoptions"
+                aria-label="Diesen Beitrag teilen"
+            >
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://yoursite.com/2019/08/13/Flutter-TDD-1/"
+                    title="分享到 Facebook"
+                    aria-label="分享到 Facebook"
+                >
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="https://twitter.com/intent/tweet?text=http://yoursite.com/2019/08/13/Flutter-TDD-1/"
+                    title="分享到 Twitter"
+                    aria-label="分享到 Twitter"
+                >
+                    <i class="fab fa-twitter" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="https://plus.google.com/share?url=http://yoursite.com/2019/08/13/Flutter-TDD-1/"
+                    title="分享到 Google+"
+                    aria-label="分享到 Google+"
+                >
+                    <i class="fab fa-google-plus" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+                <li class="post-action">
+                    <a
+                        class="post-action-btn btn btn--default"
+                        href="#gitalk"
+                        aria-label="Kommentieren"
+                    >
+                        <i class="fa fa-comment"></i>
+                    </a>
+                </li>
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="Nach oben">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+                </div>
+                
+    <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+        <i id="btn-close-shareoptions" class="fa fa-times"></i>
+        <ul class="share-options">
+            
+                
+                
+                <li class="share-option">
+                    <a
+                        class="share-option-btn"
+                        target="new"
+                        href="https://www.facebook.com/sharer/sharer.php?u=http://yoursite.com/2019/08/13/Flutter-TDD-1/"
+                        aria-label="分享到 Facebook"
+                    >
+                        <i class="fab fa-facebook" aria-hidden="true"></i><span>分享到 Facebook</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a
+                        class="share-option-btn"
+                        target="new"
+                        href="https://twitter.com/intent/tweet?text=http://yoursite.com/2019/08/13/Flutter-TDD-1/"
+                        aria-label="分享到 Twitter"
+                    >
+                        <i class="fab fa-twitter" aria-hidden="true"></i><span>分享到 Twitter</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a
+                        class="share-option-btn"
+                        target="new"
+                        href="https://plus.google.com/share?url=http://yoursite.com/2019/08/13/Flutter-TDD-1/"
+                        aria-label="分享到 Google+"
+                    >
+                        <i class="fab fa-google-plus" aria-hidden="true"></i><span>分享到 Google+</span>
+                    </a>
+                </li>
+            
+        </ul>
+    </div>
+
+
+            
+        </div>
+        
+
+
+    
+        
+    
+
+<div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-times"></i>
+        </div>
+        
+            <img id="about-card-picture" src="https://avatars2.githubusercontent.com/u/7686334?s=460&amp;v=4" alt="作者的图片"/>
+        
+            <h4 id="about-card-name">Archao</h4>
+        
+            <div id="about-card-bio"><p> 前端工程师<br>勉强上靶子的弓箭爱好者<br>德州PS NL5 未破产玩家</p>
+</div>
+        
+        
+            <div id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br/>
+                <p>前端工程师@ThoughtWorks</p>
+
+            </div>
+        
+        
+            <div id="about-card-location">
+                <i class="fa fa-map-marker-alt"></i>
+                <br/>
+                ShenZhen
+            </div>
+        
+    </div>
+</div>
+
+        
+        
+<div id="cover" style="background-image:url('/assets/images/cover.jpg');"></div>
+        <!--SCRIPTS-->
+<script src="/assets/js/script-1hhfmkgpjgsvqygyrz7xt5ilzf8kusb8wr8e70b8rxhfzilimvrzekr1a2qi.min.js"></script>
+<!--SCRIPTS END-->
+
+
+    
+        <script src="/assets/js/gitalk.js"></script>
+        <script type="text/javascript">
+          (function() {
+            new Gitalk({
+              clientID: '3d80ba116053dac3bbd5',
+              clientSecret: '04595b0343dd9c237f729544482b32d92f8fefc7',
+              repo: 'archao-me.github.io',
+              owner: 'Archao-ME',
+              admin: ['Archao-ME'],
+              id: '2019/08/13/Flutter-TDD-1/',
+              ...{"language":"zh-cn","perPage":10,"distractionFreeMode":false,"enableHotKey":true,"pagerDirection":"first"}
+            }).render('gitalk')
+          })()
+        </script>
+    
+
+
+
+
+    </body>
+</html>
