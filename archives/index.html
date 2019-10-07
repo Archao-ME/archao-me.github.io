@@ -248,6 +248,85 @@
                     
                         <a
                             class="link-unstyled"
+                            href="/2019/10/07/DIP/"
+                            aria-label=": "
+                        >
+                            (无标题)
+                        </a>
+                    
+                </h1>
+                <div class="postShorten-meta">
+    <time datetime="2019-10-07T17:00:30+08:00">
+	
+		    10月 07, 2019
+    	
+    </time>
+    
+</div>
+
+            </div>
+            
+                <div class="postShorten-content">
+                    <h1 id="关于依赖反转"><a href="#关于依赖反转" class="headerlink" title="关于依赖反转"></a>关于依赖反转</h1><p>SOLID 原则里的D指的是依赖反转（Dependency inversion principle，DIP）。该原则规定：</p>
+<ul>
+<li>高层次的模块不应该依赖于低层次的模块，两者都应该依赖于抽象接口。</li>
+<li>抽象接口不应该依赖于具体实现。而具体实现则应该依赖于抽象接口。  </li>
+</ul>
+<h2 id="什么是抽象，什么是具体"><a href="#什么是抽象，什么是具体" class="headerlink" title="什么是抽象，什么是具体"></a>什么是抽象，什么是具体</h2><p>抽象和具体是相对的，以 书 来说，它相对 小说 是抽象的，而相对 内容载体 则是具体的。</p>
+<p><img src="photos/54572df69558a01d83bc965ad1d38f09.png" alt>可以看出他们是继承关系。</p>
+<h2 id="依赖抽象，而不是具体实现"><a href="#依赖抽象，而不是具体实现" class="headerlink" title="依赖抽象，而不是具体实现"></a>依赖抽象，而不是具体实现</h2><p>当我们有个需求，要实现小明读一本小说的时候，我们可以让小明依赖于小说《OneDay》来实现：</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> Book &#123;</span><br><span class="line">	content</span><br><span class="line">	<span class="keyword">constructor</span>(<span class="params">content</span>) &#123;</span><br><span class="line">	<span class="keyword">this</span>.content = content</span><br><span class="line">&#125;</span><br><span class="line">getContent() &#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">this</span>.content</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> Man &#123;</span><br><span class="line">	readOneDay() &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">new</span> Book(<span class="string">'OneDay'</span>).getContent()</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> xiaoMin = <span class="keyword">new</span> Man()</span><br><span class="line">xiaoMin.readOneDay()</span><br></pre></td></tr></table></figure>
+
+<p>显而易见，这是一段耦合度极高的烂代码，因为我们依赖了小说的具体实现，也就是《One Day》，以后我们想读别的书，我们还得给Man添加read别的书的方法，虽然这种写法看起来很可笑，但也很普遍。</p>
+<p>接下来我们要优化一下，不依赖小说的具体实现，而是依赖于书：</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">class</span> Book &#123;</span><br><span class="line">	content</span><br><span class="line">	<span class="keyword">constructor</span>(<span class="params">content</span>) &#123;</span><br><span class="line">		<span class="keyword">this</span>.content = content</span><br><span class="line">	&#125;</span><br><span class="line">	getContent() &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">this</span>.content</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> Man &#123;</span><br><span class="line">	name</span><br><span class="line">	<span class="keyword">constructor</span>(<span class="params">name</span>) &#123;</span><br><span class="line">		<span class="keyword">this</span>.name = name</span><br><span class="line">	&#125;</span><br><span class="line">	read(book) &#123;</span><br><span class="line">		<span class="built_in">console</span>.log(book.getContent())</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> xiaoMin = <span class="keyword">new</span> Man(<span class="string">'小明'</span>)</span><br><span class="line"><span class="keyword">let</span> book = <span class="keyword">new</span> Book(<span class="string">'三体'</span>)</span><br><span class="line"></span><br><span class="line">xiaoMin.read(book)</span><br></pre></td></tr></table></figure>
+
+<p>这样好了许多，现在人可以读各种各样的书了，而且书的具体实现从外部传入，读不同的书不需要再改Man这个类了。</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">read(book) &#123;</span><br><span class="line">	<span class="built_in">console</span>.log(book.getContent())</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里的实现遵循了依赖抽象(book)而不是具体实现(三体)。那么问题来了，如果我们传入的book没有.getContent这个方法呢？比如Book类的编写者把getContent拼错了写成了getContentt该怎么办。</p>
+<p>依赖抽象接口<br>这时我们再看看原则的第一条：<br>高层次的模块不应该依赖于低层次的模块，两者都应该依赖于抽象接口。</p>
+<p>这时接口（interfaces）需要出场了。</p>
+<p>在面向对象语言中，接口（Interfaces）是一个很重要的概念，它是对行为的抽象，而具体如何行动需要由类（classes）去实现（implement）。</p>
+<p>也就是说，我们可以用接口去定义一个类、数据结构，在实现类和数据结构时，需要符合接口的定义。<br>那么修改我们的代码，让Man和Book都依赖于抽象接口</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> BookInterface &#123;</span><br><span class="line">	getContent()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> Book <span class="keyword">implements</span> BookInterface&#123;</span><br><span class="line">	content</span><br><span class="line">	<span class="keyword">constructor</span>(<span class="params">content</span>) &#123;</span><br><span class="line">		<span class="keyword">this</span>.content = content</span><br><span class="line">	&#125;</span><br><span class="line">	getContent() &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">this</span>.content</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> Man &#123;</span><br><span class="line">	name</span><br><span class="line">	<span class="keyword">constructor</span>(<span class="params">name</span>) &#123;</span><br><span class="line">		<span class="keyword">this</span>.name = name</span><br><span class="line">	&#125;</span><br><span class="line">	read(book: BookInterface) &#123;</span><br><span class="line">		<span class="built_in">console</span>.log(book.getContent())</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> xiaoMin = <span class="keyword">new</span> Man(<span class="string">'小明'</span>)</span><br><span class="line"><span class="keyword">let</span> book = <span class="keyword">new</span> Book(<span class="string">'三体'</span>)</span><br><span class="line"></span><br><span class="line">xiaoMin.read(book)</span><br></pre></td></tr></table></figure>
+
+<p><code>BookInterface</code> 是书的接口<br><code>Book implements BookInterface</code> 是 <code>Book</code> 对 <code>BookInterface</code> 接口的实现<br><code>book: BookInterface</code> 指定 <code>book</code> 的类型</p>
+<p>这时如果 Book 类没有正确实现 getContent 方法，就会报错，保证了 <code>book</code> 中一定拥有 <code>getContent</code> 方法</p>
+<p><img src="photos/dcaa42f857858954eb9296b6679e0082.png" alt></p>
+<h2 id="总结：依赖稳定的，而抽象比具体实现稳定"><a href="#总结：依赖稳定的，而抽象比具体实现稳定" class="headerlink" title="总结：依赖稳定的，而抽象比具体实现稳定"></a>总结：依赖稳定的，而抽象比具体实现稳定</h2><p>依赖关系是代码好坏的关键，而各种和依赖相关的原则和优化都是一个有一个大方向，那就是依赖简单、稳定、不变的，不依赖复杂、具体、多变的。<br>复杂的实现应该是这些简单、稳定的模块组合实现</p>
+
+                    
+                        
+
+
+                    
+                    
+                        <p>
+                            <a
+                                href="/2019/10/07/DIP/#post-footer"
+                                class="postShorten-excerpt_link link"
+                                aria-label=""
+                            >
+                                评论和共享
+                            </a>
+                        </p>
+                    
+                </div>
+            
+        </div>
+        
+    </article>
+    
+    
+    <article class="postShorten postShorten--thumbnailimg-bottom">
+        <div class="postShorten-wrap">
+            
+            <div class="postShorten-header">
+                <h1 class="postShorten-title">
+                    
+                        <a
+                            class="link-unstyled"
                             href="/2019/09/16/phtotgraphy-01/"
                             aria-label=": 日落后的珠江和火车"
                         >
