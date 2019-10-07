@@ -284,8 +284,8 @@
 <p>这样好了许多，现在人可以读各种各样的书了，而且书的具体实现从外部传入，读不同的书不需要再改Man这个类了。</p>
 <figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">read(book) &#123;</span><br><span class="line">	<span class="built_in">console</span>.log(book.getContent())</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>这里的实现遵循了依赖抽象(book)而不是具体实现(三体)。那么问题来了，如果我们传入的book没有.getContent这个方法呢？比如Book类的编写者把getContent拼错了写成了getContentt该怎么办。</p>
-<p>依赖抽象接口<br>这时我们再看看原则的第一条：<br>高层次的模块不应该依赖于低层次的模块，两者都应该依赖于抽象接口。</p>
+<p>这里的实现遵循了依赖抽象(book)而不是具体实现(三体)。那么问题来了，如果我们传入的book没有.getContent这个方法呢？比如Book类的编写者把 <code>getContent</code> 拼错了写成了 <code>getContentt</code> 该怎么办。</p>
+<h2 id="依赖抽象接口"><a href="#依赖抽象接口" class="headerlink" title="依赖抽象接口"></a>依赖抽象接口</h2><p>这时我们再看看原则的第一条：<br>高层次的模块不应该依赖于低层次的模块，两者都应该依赖于抽象接口。</p>
 <p>这时接口（interfaces）需要出场了。</p>
 <p>在面向对象语言中，接口（Interfaces）是一个很重要的概念，它是对行为的抽象，而具体如何行动需要由类（classes）去实现（implement）。</p>
 <p>也就是说，我们可以用接口去定义一个类、数据结构，在实现类和数据结构时，需要符合接口的定义。<br>那么修改我们的代码，让Man和Book都依赖于抽象接口</p>
