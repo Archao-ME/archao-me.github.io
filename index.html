@@ -272,7 +272,8 @@
 <li>抽象接口不应该依赖于具体实现。而具体实现则应该依赖于抽象接口。  </li>
 </ul>
 <h2 id="什么是抽象，什么是具体"><a href="#什么是抽象，什么是具体" class="headerlink" title="什么是抽象，什么是具体"></a>什么是抽象，什么是具体</h2><p>抽象和具体是相对的，以 书 来说，它相对 小说 是抽象的，而相对 内容载体 则是具体的。</p>
-<p><img src="/images/DIP/54572df69558a01d83bc965ad1d38f09.png" alt>可以看出他们是继承关系。</p>
+<p><img src="https://archao.oss-cn-shenzhen.aliyuncs.com/DIP/54572df69558a01d83bc965ad1d38f09.png?x-oss-process=style/blog" alt></p>
+<p>可以看出他们是继承关系。</p>
 <h2 id="依赖抽象，而不是具体实现"><a href="#依赖抽象，而不是具体实现" class="headerlink" title="依赖抽象，而不是具体实现"></a>依赖抽象，而不是具体实现</h2><p>当我们有个需求，要实现小明读一本小说的时候，我们可以让小明依赖于小说《OneDay》来实现：</p>
 <figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> Book &#123;</span><br><span class="line">	content</span><br><span class="line">	<span class="keyword">constructor</span>(<span class="params">content</span>) &#123;</span><br><span class="line">		<span class="keyword">this</span>.content = content</span><br><span class="line">	&#125;</span><br><span class="line">	getContent() &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">this</span>.content</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> Man &#123;</span><br><span class="line">	readOneDay() &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">new</span> Book(<span class="string">'OneDay'</span>).getContent()</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> xiaoMin = <span class="keyword">new</span> Man()</span><br><span class="line">xiaoMin.readOneDay()</span><br></pre></td></tr></table></figure>
 
@@ -294,7 +295,7 @@
 
 <p><code>BookInterface</code> 是书的接口<br><code>Book implements BookInterface</code> 是 <code>Book</code> 对 <code>BookInterface</code> 接口的实现<br><code>book: BookInterface</code> 指定 <code>book</code> 的类型</p>
 <p>这时如果 Book 类没有正确实现 getContent 方法，就会报错，保证了 <code>book</code> 中一定拥有 <code>getContent</code> 方法</p>
-<p><img src="/images/DIP/dcaa42f857858954eb9296b6679e0082.png" alt></p>
+<p><img src="https://archao.oss-cn-shenzhen.aliyuncs.com/DIP/dcaa42f857858954eb9296b6679e0082.png?x-oss-process=style/blog" alt></p>
 <h2 id="总结：依赖稳定的，而抽象比具体实现稳定"><a href="#总结：依赖稳定的，而抽象比具体实现稳定" class="headerlink" title="总结：依赖稳定的，而抽象比具体实现稳定"></a>总结：依赖稳定的，而抽象比具体实现稳定</h2><p>依赖关系是代码好坏的关键，而各种和依赖相关的原则和优化都有一个大方向，那就是依赖简单、稳定、不变的，不依赖复杂、具体、多变的。<br>复杂的实现应该是这些简单、稳定的模块组合实现</p>
 
                     
@@ -347,10 +348,10 @@
             </div>
             
                 <div class="postShorten-content">
-                    <p><img src="https://archao.oss-cn-shenzhen.aliyuncs.com/phtotgraphy-01/1.jpeg?x-oss-process=style/blog&Expires=1570533152&OSSAccessKeyId=TMP.hWuuNoNN9SiVmVK9qCPxFHjXBDaEaPXwME9nc2dRRUxigrLJwSKUTX2yWprrbZEFwEJCbauocFyM2NXMdWCjwzHBZbuoYdDvS9fpnPEaJeJNaHGqcyLQGvyTwm19Uh.tmp&Signature=f3I0hvweeVezamhzpKhNWCFU5bo%3D" alt></p>
-<p><img src="https://archao.oss-cn-shenzhen.aliyuncs.com/phtotgraphy-01/2.jpeg?x-oss-process=style/blog&Expires=1570533182&OSSAccessKeyId=TMP.hWuuNoNN9SiVmVK9qCPxFHjXBDaEaPXwME9nc2dRRUxigrLJwSKUTX2yWprrbZEFwEJCbauocFyM2NXMdWCjwzHBZbuoYdDvS9fpnPEaJeJNaHGqcyLQGvyTwm19Uh.tmp&Signature=bIbilzNfZ7y%2BZ84HfTFiKLXLKcA%3D" alt></p>
-<p><img src="https://archao.oss-cn-shenzhen.aliyuncs.com/phtotgraphy-01/3.jpeg?x-oss-process=style/blog&Expires=1570533199&OSSAccessKeyId=TMP.hWuuNoNN9SiVmVK9qCPxFHjXBDaEaPXwME9nc2dRRUxigrLJwSKUTX2yWprrbZEFwEJCbauocFyM2NXMdWCjwzHBZbuoYdDvS9fpnPEaJeJNaHGqcyLQGvyTwm19Uh.tmp&Signature=YgSz1%2FCWBBzVR7ZL25MfW4QDbeg%3D" alt></p>
-<p><img src="https://archao.oss-cn-shenzhen.aliyuncs.com/phtotgraphy-01/4.jpeg?x-oss-process=style/blog&Expires=1570533212&OSSAccessKeyId=TMP.hWuuNoNN9SiVmVK9qCPxFHjXBDaEaPXwME9nc2dRRUxigrLJwSKUTX2yWprrbZEFwEJCbauocFyM2NXMdWCjwzHBZbuoYdDvS9fpnPEaJeJNaHGqcyLQGvyTwm19Uh.tmp&Signature=ocj%2BSDj1qOpsvT6pDIk4G%2FklXaw%3D" alt></p>
+                    <p><img src="https://archao.oss-cn-shenzhen.aliyuncs.com/phtotgraphy-01/1.jpeg?x-oss-process=style/blog" alt></p>
+<p><img src="https://archao.oss-cn-shenzhen.aliyuncs.com/phtotgraphy-01/2.jpeg?x-oss-process=style/blog" alt></p>
+<p><img src="https://archao.oss-cn-shenzhen.aliyuncs.com/phtotgraphy-01/3.jpeg?x-oss-process=style/blog" alt></p>
+<p><img src="https://archao.oss-cn-shenzhen.aliyuncs.com/phtotgraphy-01/4.jpeg?x-oss-process=style/blog" alt></p>
 
                     
                         
@@ -404,7 +405,7 @@
                 <div class="postShorten-excerpt">
                     <p>换镜头了，挂上老镜头的照片以便以后对比</p>
 <p><img src="https://archao.oss-cn-shenzhen.aliyuncs.com/1.jpeg?x-oss-process=style/blog" alt></p>
-<p><img src="https://archao.oss-cn-shenzhen.aliyuncs.com/2.jpeg?Expires=1570532469&OSSAccessKeyId=TMP.hWuuNoNN9SiVmVK9qCPxFHjXBDaEaPXwME9nc2dRRUxigrLJwSKUTX2yWprrbZEFwEJCbauocFyM2NXMdWCjwzHBZbuoYdDvS9fpnPEaJeJNaHGqcyLQGvyTwm19Uh.tmp&Signature=I1sADGTI5a5PmKOmdQ8klJxoUGQ%3D" alt></p>
+<p><img src="https://archao.oss-cn-shenzhen.aliyuncs.com/2.jpeg?x-oss-process=style/blog" alt></p>
                     
                         <a
                             href="/2019/09/11/photography-00/"
